@@ -29,7 +29,6 @@ export function move(gameState: GameState): MoveResponse {
     }
 
     const myHead = gameState.you.head
-    const myNeck = gameState.you.body[1]
 
     // TODO: Step 1 - Don't hit walls.
     // Use information in gameState to prevent your Battlesnake from moving beyond the boundaries of the board.
@@ -80,7 +79,7 @@ export function move(gameState: GameState): MoveResponse {
         up: false,
         down: false
     }
-    foods.forEach((food, i) => {
+    foods.forEach((food) => {
         if (food.x < myHead.x) {
             foodIs.left = true
         }
@@ -101,6 +100,11 @@ export function move(gameState: GameState): MoveResponse {
         move,
     }
 
+    if (move === undefined) {
+        response.shout = "AARGH!"
+    } else {
+        response.shout = `Moving ${move}!`
+    }
     console.log(`${gameState.game.id} MOVE ${gameState.turn}: ${response.move}`)
     return response
 }
