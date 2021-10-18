@@ -5,7 +5,7 @@ import { info, start, move, end } from "./logic";
 const app = express()
 app.use(express.json())
 
-const port = process.env.PORT || 8080
+const port = process.env.PORT || 5555
 
 app.get("/", (req: Request, res: Response) => {
     res.send(info())
