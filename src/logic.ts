@@ -1,4 +1,4 @@
-import { InfoResponse, GameState, MoveResponse, Game } from "./types"
+import { InfoResponse, GameState, MoveResponse, Coord } from "./types"
 
 export function info(): InfoResponse {
     console.log("INFO")
@@ -21,11 +21,11 @@ export function end(gameState: GameState): void {
 }
 
 export function move(gameState: GameState): MoveResponse {
-    let possibleMoves: { [key: string]: boolean } = {
-        down: true,
-        left: true,
-        up: true,
-        right: true
+    let priorityMoves: { [key: string]: number } = {
+        down: 100,
+        left: 100,
+        up: 100,
+        right: 100
     }
 
     const myHead = gameState.you.head
@@ -36,16 +36,16 @@ export function move(gameState: GameState): MoveResponse {
     const boardWidth = gameState.board.width
     const boardHeight = gameState.board.height
     if (myHead.x === 0) {
-        possibleMoves.left = false
+        priorityMoves.left = 0
     }
     if (myHead.x === boardWidth - 1) {
-        possibleMoves.right = false
+        priorityMoves.right = 0
     }
     if (myHead.y === 0) {
-        possibleMoves.down = false
+        priorityMoves.down = 0
     }
     if (myHead.y === boardHeight - 1) {
-        possibleMoves.up = false
+        priorityMoves.up = 0
     }
 
     // Step 0: Don't let your Battlesnake move back on its own neck
@@ -55,15 +55,16 @@ export function move(gameState: GameState): MoveResponse {
     const myBody = gameState.you.body
     const allSnakes = gameState.board.snakes
     allSnakes.forEach((snake) => {
-        snake.body.forEach((coord) => {
+        snake.body.forEach((coord, i) => {
+            if (i === snake.body.length - 1) return // You can move onto people's tails
             if (coord.x === myHead.x - 1 && coord.y === myHead.y) {
-                possibleMoves.left = false
+                priorityMoves.left = 0
             } else if (coord.x === myHead.x + 1 && coord.y === myHead.y) {
-                possibleMoves.right = false
+                priorityMoves.right = 0
             } else if (coord.y === myHead.y - 1 && coord.x === myHead.x) {
-                possibleMoves.down = false
+                priorityMoves.down = 0
             } else if (coord.y === myHead.y + 1 && coord.x === myHead.x) {
-                possibleMoves.up = false
+                priorityMoves.up = 0
             }
         })
     })
@@ -71,30 +72,47 @@ export function move(gameState: GameState): MoveResponse {
     // TODO: Step 4 - Find food.
     // TODO: Step 5 - Select a move to make based on strategy, rather than random.
     // Use information in gameState to seek out and find food.
-    const safeMoves = Object.keys(possibleMoves).filter(key => possibleMoves[key])
-    const foods = gameState.board.food
-    let foodIs: { [key: string]: boolean } = {
-        left: false,
-        right: false,
-        up: false,
-        down: false
+
+    /*
+        Prioritize the direction that goes toward the closest food
+    */
+    const food = gameState.board.food || []
+    if (food.length) {
+        const closestFood: Coord = gameState.board.food.sort((foodA: Coord, foodB: Coord) => {
+            return coordDistance(foodA, myHead) - coordDistance(foodB, myHead)
+        })[0]
+        // Prioritize the direction of the furthest axis
+        const dx = closestFood.x - myHead.x
+        const dy = closestFood.y - myHead.y
+        priorityMoves.right += dx
+        priorityMoves.left -= dx
+        priorityMoves.up += dy
+        priorityMoves.down -= dy
     }
-    foods.forEach((food) => {
-        if (food.x < myHead.x) {
-            foodIs.left = true
+
+    /*
+        Deprioritize spaces that might be taken by bigger snakes
+    */
+    gameState.board.snakes.forEach((snake) => {
+        const snakeHead = snake.head
+        if (coordDistance(myHead, snakeHead) !== 2) return
+        const attack = (gameState.you.length > snake.length) ? 1 : -1
+        if (snakeHead.y > myHead.y) {
+            priorityMoves.up += attack * 50
+        } else if (snakeHead.y < myHead.y) {
+            priorityMoves.down += attack * 50
         }
-        if (food.x > myHead.x) {
-            foodIs.right = true
-        }
-        if (food.y < myHead.y) {
-            foodIs.down = true
-        }
-        if (food.y > myHead.y) {
-            foodIs.up = true
+        if (snakeHead.x > myHead.x) {
+            priorityMoves.right += attack * 50
+        } else if (snakeHead.x < myHead.x) {
+            priorityMoves.left += attack * 50
         }
     })
-    const safeMovesWithFood = Object.keys(possibleMoves).filter(key => possibleMoves[key] && foodIs[key])
-    const move = (safeMovesWithFood.length > 0) ? safeMovesWithFood[0] : safeMoves[0]
+
+    // Take the highest priority move
+    const move = Object.keys(priorityMoves)
+        .sort((moveA, moveB) => priorityMoves[moveB] - priorityMoves[moveA])[0]
+
     // Finally, choose a move from the available safe moves.
     const response: MoveResponse = {
         move,
@@ -107,4 +125,22 @@ export function move(gameState: GameState): MoveResponse {
     }
     console.log(`${gameState.game.id} MOVE ${gameState.turn}: ${response.move}`)
     return response
+}
+
+// HELPER FUNCTIONS
+function coordDistance(a: Coord, b: Coord) {
+    const dx = (b.x - a.x)
+    const dy = (b.y - a.y)
+    // Tile distance
+    return Math.abs(dx) + Math.abs(dy)
+}
+
+function direction(a: Coord, b: Coord): string {
+    const dx = (b.x - a.x)
+    const dy = (b.y - a.y)
+    if (Math.abs(dx) > Math.abs(dy)) {
+        return (dx > 0) ? 'right': 'left'
+    } else {
+        return (dy > 0) ? 'up' : 'down'
+    }
 }
