@@ -1,4 +1,13 @@
 import { InfoResponse, GameState, MoveResponse, Coord } from "./types"
+import Grid from './grid'
+import { coordDistance } from "./util"
+
+const PRIORITIES = {
+    TO_FOOD: 3,
+    SCARY_SNAKE: -5,
+    YUMMY_SNAKE: 5,
+    HAZARD_SAUCE: -4
+}
 
 export function info(): InfoResponse {
     console.log("INFO")
@@ -13,18 +22,11 @@ export function info(): InfoResponse {
 }
 
 export function start(gameState: GameState): void {
-    console.log(`${gameState.game.id} START`)
+    console.log(`${gameState.game.id} ${gameState.you.id} START`)
 }
 
 export function end(gameState: GameState): void {
-    console.log(`${gameState.game.id} END\n`)
-}
-
-const priorities = {
-    TO_FOOD: 3,
-    SCARY_SNAKE: -50,
-    YUMMY_SNAKE: 50,
-    HAZARD_SAUCE: -4
+    console.log(`${gameState.game.id} ${gameState.you.id} END\n`)
 }
 
 export function move(gameState: GameState): MoveResponse {
@@ -59,7 +61,6 @@ export function move(gameState: GameState): MoveResponse {
     // Step 2 - Don't hit yourself.
     // Step 3 - Don't collide with others.
     // Use information in gameState to prevent your Battlesnake from colliding with itself.
-    const myBody = gameState.you.body
     const allSnakes = gameState.board.snakes
     allSnakes.forEach((snake) => {
         snake.body.forEach((coord, i) => {
@@ -83,26 +84,35 @@ export function move(gameState: GameState): MoveResponse {
     /*
         Prioritize the direction that goes toward the closest food
     */
-    const food = gameState.board.food || []
-    if (food.length) {
-        const closestFood: Coord = gameState.board.food.sort((foodA: Coord, foodB: Coord) => {
-            return coordDistance(foodA, myHead) - coordDistance(foodB, myHead)
-        })[0]
-        // Prioritize the direction of the furthest axis
-        const dx = closestFood.x - myHead.x
-        const dy = closestFood.y - myHead.y
-        if (dx) priorityMoves.right += dx / Math.abs(dx) * priorities.TO_FOOD
-        if (dx) priorityMoves.left -= dx / Math.abs(dx) * priorities.TO_FOOD
-        if (dy) priorityMoves.up += dy / Math.abs(dy) * priorities.TO_FOOD
-        if (dy) priorityMoves.down -= dy / Math.abs(dy) * priorities.TO_FOOD
-        if (Math.abs(dy) > Math.abs(dx)) {
-            priorityMoves.up += (dy > 0) ? 1 : 0
-            priorityMoves.down += (dy < 0) ? 1 : 0
-        } else if (Math.abs(dx) > Math.abs(dy)) {
-            priorityMoves.right += (dx > 0) ? 1 : 0
-            priorityMoves.left += (dx < 0) ? 1 : 0
+    // New way, build and use a grid
+    const grid = new Grid(gameState, myHead)
+    let chosenPath: string[] = []
+        gameState.board.food.forEach((food) => {
+            try {
+                const path = grid.findPath(gameState.board.food[0])
+                if (!chosenPath.length || chosenPath.length > path.length) {
+                    chosenPath = path
+                }
+            } catch (error) {
+                console.log(`${gameState.game.id} ${gameState.you.id} no path to food`)
+            }
+        })
+        // Move to my own tail otherwise
+        if (!chosenPath.length) {
+            try {
+                const path = grid.findPath(gameState.you.body[gameState.you.length-1])
+                if (path.length > 1) { // Gotta have space
+                    // TODO: Make sure we don't hit our tail right after eating
+                    chosenPath = path
+                }
+            } catch (error) {
+                console.log(`${gameState.game.id} ${gameState.you.id} no path to my tail`)
+            }
         }
-    }
+        if (chosenPath.length > 1) {
+            const direction = getDirection(myHead, chosenPath[1])
+            if (direction) priorityMoves[direction] += PRIORITIES.TO_FOOD
+        }
 
     /*
         Deprioritize spaces that might be taken by bigger snakes
@@ -112,46 +122,46 @@ export function move(gameState: GameState): MoveResponse {
         if (coordDistance(myHead, snakeHead) !== 2) return
         if (gameState.you.length > snake.length) { // Yummy snake
             if (snakeHead.y > myHead.y) {
-                priorityMoves.up += priorities.YUMMY_SNAKE
+                priorityMoves.up += PRIORITIES.YUMMY_SNAKE
             } else if (snakeHead.y < myHead.y) {
-                priorityMoves.down += priorities.YUMMY_SNAKE
+                priorityMoves.down += PRIORITIES.YUMMY_SNAKE
             }
             if (snakeHead.x > myHead.x) {
-                priorityMoves.right += priorities.YUMMY_SNAKE
+                priorityMoves.right += PRIORITIES.YUMMY_SNAKE
             } else if (snakeHead.x < myHead.x) {
-                priorityMoves.left += priorities.YUMMY_SNAKE
+                priorityMoves.left += PRIORITIES.YUMMY_SNAKE
             }
         } else { // Scary snake
             if (snakeHead.y > myHead.y) {
-                priorityMoves.up += priorities.SCARY_SNAKE
+                priorityMoves.up += PRIORITIES.SCARY_SNAKE
             } else if (snakeHead.y < myHead.y) {
-                priorityMoves.down += priorities.SCARY_SNAKE
+                priorityMoves.down += PRIORITIES.SCARY_SNAKE
             }
             if (snakeHead.x > myHead.x) {
-                priorityMoves.right += priorities.SCARY_SNAKE
+                priorityMoves.right += PRIORITIES.SCARY_SNAKE
             } else if (snakeHead.x < myHead.x) {
-                priorityMoves.left += priorities.SCARY_SNAKE
+                priorityMoves.left += PRIORITIES.SCARY_SNAKE
             }
         }
 
     })
 
-    /*
-        Deprioritize hazard tiles
-    */
-   gameState.board.hazards.forEach((hazard) => {
-       if (coordDistance(myHead, hazard) !== 1) return
-       if (hazard.y > myHead.y) {
-            priorityMoves.up += priorities.HAZARD_SAUCE
-        } else if (hazard.y < myHead.y) {
-            priorityMoves.down += priorities.HAZARD_SAUCE
-        }
-        if (hazard.x > myHead.x) {
-            priorityMoves.right += priorities.HAZARD_SAUCE
-        } else if (hazard.x < myHead.x) {
-            priorityMoves.left += priorities.HAZARD_SAUCE
-        }
-   })
+//     /*
+//         Deprioritize hazard tiles
+//     */
+//    gameState.board.hazards.forEach((hazard) => {
+//        if (coordDistance(myHead, hazard) !== 1) return
+//        if (hazard.y > myHead.y) {
+//             priorityMoves.up += priorities.HAZARD_SAUCE
+//         } else if (hazard.y < myHead.y) {
+//             priorityMoves.down += priorities.HAZARD_SAUCE
+//         }
+//         if (hazard.x > myHead.x) {
+//             priorityMoves.right += priorities.HAZARD_SAUCE
+//         } else if (hazard.x < myHead.x) {
+//             priorityMoves.left += priorities.HAZARD_SAUCE
+//         }
+//    })
 
     // Take the highest priority move
     const move = Object.keys(priorityMoves)
@@ -167,16 +177,19 @@ export function move(gameState: GameState): MoveResponse {
     } else {
         response.shout = `Moving ${move}!`
     }
-    console.log(`${gameState.game.id} MOVE ${gameState.turn}: ${response.move}`)
+    console.log(`${gameState.game.id} ${gameState.you.id} MOVE ${gameState.turn}: ${response.move}`)
     return response
 }
 
 // HELPER FUNCTIONS
-function coordDistance(a: Coord, b: Coord) {
-    const dx = (b.x - a.x)
-    const dy = (b.y - a.y)
-    // Tile distance
-    return Math.abs(dx) + Math.abs(dy)
+function getDirection(start: Coord, key: string): string | undefined {
+    const [keyX, keyY] = key.split(',')
+    const x = parseInt(keyX)
+    const y = parseInt(keyY)
+    if (start.x === x && start.y - 1 === y) return 'down'
+    if (start.x === x && start.y + 1 === y) return 'up'
+    if (start.x - 1 === x && start.y === y) return 'left'
+    if (start.x + 1 === x && start.y === y) return 'right'
 }
 
 function direction(a: Coord, b: Coord): string {
