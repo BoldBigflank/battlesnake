@@ -89,7 +89,7 @@ export function move(gameState: GameState): MoveResponse {
     let chosenPath: string[] = []
         gameState.board.food.forEach((food) => {
             try {
-                const path = grid.findPath(gameState.board.food[0])
+                const path = grid.findPath(food)
                 if (!chosenPath.length || chosenPath.length > path.length) {
                     chosenPath = path
                 }
