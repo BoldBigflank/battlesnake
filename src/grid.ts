@@ -1,6 +1,6 @@
 /// <reference path='./dijkstra.d.ts' />
-import { InfoResponse, GameState, Game, Board, MoveResponse, Coord, Graph, Edges } from "./types"
-import { coordDistance } from "./util"
+import { InfoResponse, GameState, Game, Board, Battlesnake, MoveResponse, Coord, Graph, Edges } from "./types"
+import { coordDistance, isAdjacent } from "./util"
 import * as dijkstra from 'dijkstrajs'
 
 export default class Grid {
@@ -8,10 +8,13 @@ export default class Grid {
     graph: Graph
     board: Board
     start: Coord
+    you: Battlesnake
+
     constructor(gameState: GameState, start: Coord) {
         this.game = gameState.game
         this.graph = {}
         this.board = gameState.board
+        this.you = gameState.you
         this.start = start
         this.buildGrid()
     }
@@ -45,10 +48,22 @@ export default class Grid {
 
         // Remove paths with snakes in them
         this.board.snakes.forEach((snake) => {
+            // If the snake's gonna die this turn, ignore it
+            if (
+                snake.id !== this.you.id
+                && snake.health === 1
+                && !this.board.food.some((food) => isAdjacent(food, snake.head))
+            ) {
+                return
+            }
             snake.body.forEach((coord, i) => {
                 const distance = coordDistance(this.start, coord)
                 if (distance >= (snake.length - i)) return // It's gonna be gone then
-                this.setAllEdges(coord, -1)
+                // There's a small chance that the snake might run out of health or
+                // Move out of bounds and be removed before our move resolves
+                // So it's better to move into another snake than into a wall.
+                const weight = (snake.id === this.you.id) ? -1 : 1000000 + snake.health
+                this.setAllEdges(coord, weight)
             })
         })
         this.graph = graph

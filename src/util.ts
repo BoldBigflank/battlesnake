@@ -6,3 +6,7 @@ export function coordDistance(a: Coord, b: Coord) {
     // Tile distance
     return Math.abs(dx) + Math.abs(dy)
 }
+
+export function isAdjacent(a: Coord, b: Coord): boolean {
+    return coordDistance(a, b) === 1
+}
