@@ -26,7 +26,13 @@ export function start(gameState: GameState): void {
 }
 
 export function end(gameState: GameState): void {
-    console.log(`${gameState.game.id} ${gameState.you.id} END\n`)
+    let result = 'UNKNONWN'
+    if (gameState.board.snakes.length === 0) {
+        result = 'DRAW'
+    } else {
+        result = `${gameState.board.snakes[0].name} WINS`
+    }
+    console.log(`${gameState.game.id} ${gameState.you.id} END - ${result}\n`)
 }
 
 export function move(gameState: GameState): MoveResponse {
