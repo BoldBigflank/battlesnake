@@ -1,4 +1,4 @@
-import { InfoResponse, GameState, MoveResponse, Coord } from "./types"
+import { InfoResponse, GameState, MoveResponse, Coord, CompetitorRecord } from "./types"
 import Grid from './grid'
 import { coordDistance } from "./util"
 
@@ -8,6 +8,8 @@ const PRIORITIES = {
     YUMMY_SNAKE: 5,
     HAZARD_SAUCE: -4
 }
+
+const competitors: Record<string,CompetitorRecord> = {}
 
 export function info(): InfoResponse {
     console.log("INFO")
@@ -22,6 +24,13 @@ export function info(): InfoResponse {
 }
 
 export function start(gameState: GameState): void {
+    gameState.board.snakes.forEach((snake) => {
+        if (!competitors[snake.name]) competitors[snake.name] = {
+            plays: 0,
+            wins: 0
+        }
+        competitors[snake.name].plays += 1
+    })
     console.log(`${gameState.game.id} ${gameState.you.id} START`)
 }
 
@@ -30,9 +39,12 @@ export function end(gameState: GameState): void {
     if (gameState.board.snakes.length === 0) {
         result = 'DRAW'
     } else {
-        result = `${gameState.board.snakes[0].name} WINS`
+        const name = gameState.board.snakes[0].name 
+        result = `${name} WINS`
+        competitors[name].wins += 1
     }
     console.log(`${gameState.game.id} ${gameState.you.id} END - ${result}\n`)
+    displayLeaderboard()
 }
 
 export function move(gameState: GameState): MoveResponse {
@@ -206,4 +218,19 @@ function direction(a: Coord, b: Coord): string {
     } else {
         return (dy > 0) ? 'up' : 'down'
     }
+}
+
+function displayLeaderboard() {
+    Object.keys(competitors)
+        .sort((nameA, nameB) => {
+            const winA = competitors[nameA].wins / competitors[nameA].plays
+            const winB = competitors[nameB].wins / competitors[nameB].plays
+            return winA - winB
+        })
+        .map((name) => {
+            const { wins, plays } = competitors[name]
+            const average = wins/plays
+            return `${name} - ${competitors[name].wins}/${competitors[name].plays} (${average})`
+        })
+        .forEach((line) => console.log(line))
 }

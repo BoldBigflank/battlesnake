@@ -85,3 +85,8 @@ export interface GameState {
 export type Graph = Record<string,Edges>
 
 export type Edges = Record<string,number>
+
+export type CompetitorRecord = {
+    plays: number
+    wins: number
+}
