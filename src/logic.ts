@@ -41,9 +41,11 @@ export function end(gameState: GameState): void {
     if (gameState.board.snakes.length === 0) {
         result = 'DRAW'
     } else {
-        const name = gameState.board.snakes[0].name 
+        const name = gameState.board.snakes[0].name
         result = `${name} WINS`
-        competitors[name].wins += 1
+        if (competitors[name]) {
+            competitors[name].wins += 1
+        }
     }
     console.log(`${gameState.game.id} ${gameState.you.id} END - ${result}\n`)
     displayLeaderboard()
@@ -166,23 +168,6 @@ export function move(gameState: GameState): MoveResponse {
         }
 
     })
-
-//     /*
-//         Deprioritize hazard tiles
-//     */
-//    gameState.board.hazards.forEach((hazard) => {
-//        if (coordDistance(myHead, hazard) !== 1) return
-//        if (hazard.y > myHead.y) {
-//             priorityMoves.up += priorities.HAZARD_SAUCE
-//         } else if (hazard.y < myHead.y) {
-//             priorityMoves.down += priorities.HAZARD_SAUCE
-//         }
-//         if (hazard.x > myHead.x) {
-//             priorityMoves.right += priorities.HAZARD_SAUCE
-//         } else if (hazard.x < myHead.x) {
-//             priorityMoves.left += priorities.HAZARD_SAUCE
-//         }
-//    })
 
     // Take the highest priority move
     const move = Object.keys(priorityMoves)
