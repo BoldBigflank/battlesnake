@@ -1,3 +1,3 @@
 git pull
-npm run build
+npm i && npm run build
 pm2 restart all

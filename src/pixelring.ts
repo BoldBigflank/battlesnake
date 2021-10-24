@@ -152,6 +152,10 @@ const colors: Record<string,string> = {
 }
 
 export async function onGameStart(board: Board) {
+    if (!ACCESS_TOKEN) {
+        console.log('Particle Access Token missing')
+        return
+    }
     let colorString = ''
     const numLights = Math.floor(PIXEL_COUNT / board.snakes.length)
     board.snakes.forEach((snake) => {
@@ -167,6 +171,10 @@ export async function onGameStart(board: Board) {
 }
 
 export async function onGameEnd(board: Board) {
+    if (!ACCESS_TOKEN) {
+        console.log('Particle Access Token missing')
+        return
+    }
     let color = "000000"
     if (board.snakes.length) {
         const winner = board.snakes[0].name
