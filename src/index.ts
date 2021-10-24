@@ -1,3 +1,6 @@
+if (process.env.NODE_ENV !== "production") {
+    require("dotenv").config();
+}
 import express, { Request, Response } from "express"
 
 import { info, start, move, end } from "./logic";

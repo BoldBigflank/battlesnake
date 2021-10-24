@@ -1,6 +1,7 @@
 import { InfoResponse, GameState, MoveResponse, Coord, CompetitorRecord } from "./types"
 import Grid from './grid'
 import { coordDistance } from "./util"
+import { onGameEnd, onGameStart } from "./pixelring"
 
 const PRIORITIES = {
     TO_FOOD: 3,
@@ -32,6 +33,7 @@ export function start(gameState: GameState): void {
         competitors[snake.name].plays += 1
     })
     console.log(`${gameState.game.id} ${gameState.you.id} START`)
+    onGameStart(gameState.board)
 }
 
 export function end(gameState: GameState): void {
@@ -45,6 +47,7 @@ export function end(gameState: GameState): void {
     }
     console.log(`${gameState.game.id} ${gameState.you.id} END - ${result}\n`)
     displayLeaderboard()
+    onGameEnd(gameState.board)
 }
 
 export function move(gameState: GameState): MoveResponse {
@@ -230,7 +233,7 @@ function displayLeaderboard() {
         .map((name) => {
             const { wins, plays } = competitors[name]
             const average = wins/plays
-            return `${name} - ${competitors[name].wins}/${competitors[name].plays} (${average})`
+            return `"${name.replace(/\"/g, "\"")}",${competitors[name].wins},${competitors[name].plays},${average}`
         })
         .forEach((line) => console.log(line))
 }
