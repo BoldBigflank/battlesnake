@@ -90,3 +90,8 @@ export type CompetitorRecord = {
     plays: number
     wins: number
 }
+
+export type APISnake = {
+    Name: string
+    Color: string
+}

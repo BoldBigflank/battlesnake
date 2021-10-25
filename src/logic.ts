@@ -10,8 +10,6 @@ const PRIORITIES = {
     HAZARD_SAUCE: -4
 }
 
-const competitors: Record<string,CompetitorRecord> = {}
-
 export function info(): InfoResponse {
     console.log("INFO")
     const response: InfoResponse = {
@@ -25,15 +23,8 @@ export function info(): InfoResponse {
 }
 
 export function start(gameState: GameState): void {
-    gameState.board.snakes.forEach((snake) => {
-        if (!competitors[snake.name]) competitors[snake.name] = {
-            plays: 0,
-            wins: 0
-        }
-        competitors[snake.name].plays += 1
-    })
     console.log(`${gameState.game.id} ${gameState.you.id} START`)
-    onGameStart(gameState.board)
+    onGameStart(gameState)
 }
 
 export function end(gameState: GameState): void {
@@ -41,15 +32,15 @@ export function end(gameState: GameState): void {
     if (gameState.board.snakes.length === 0) {
         result = 'DRAW'
     } else {
+        const winningSnake = gameState.board.snakes[0]
         const name = gameState.board.snakes[0].name
         result = `${name} WINS`
-        if (competitors[name]) {
-            competitors[name].wins += 1
+        if (winningSnake.id === gameState.you.id) {
+            result = `${name} - I WON!`
         }
     }
     console.log(`${gameState.game.id} ${gameState.you.id} END - ${result}\n`)
-    displayLeaderboard()
-    onGameEnd(gameState.board)
+    onGameEnd(gameState)
 }
 
 export function move(gameState: GameState): MoveResponse {
@@ -206,19 +197,4 @@ function direction(a: Coord, b: Coord): string {
     } else {
         return (dy > 0) ? 'up' : 'down'
     }
-}
-
-function displayLeaderboard() {
-    Object.keys(competitors)
-        .sort((nameA, nameB) => {
-            const winA = competitors[nameA].wins / competitors[nameA].plays
-            const winB = competitors[nameB].wins / competitors[nameB].plays
-            return winA - winB
-        })
-        .map((name) => {
-            const { wins, plays } = competitors[name]
-            const average = wins/plays
-            return `"${name.replace(/\"/g, "\"")}",${competitors[name].wins},${competitors[name].plays},${average}`
-        })
-        .forEach((line) => console.log(line))
 }
