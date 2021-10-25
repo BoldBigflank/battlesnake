@@ -92,6 +92,7 @@ export type CompetitorRecord = {
 }
 
 export type APISnake = {
+    ID: string
     Name: string
     Color: string
 }

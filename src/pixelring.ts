@@ -15,7 +15,7 @@ export async function onGameStart(gameState: GameState) {
         return
     }
     // get the colors from 
-    let colorString = ''
+    const colorArray: string[] = []
     const numLights = Math.floor(PIXEL_COUNT / board.snakes.length)
     const gameUrl = `https://engine.battlesnake.com/games/${game.id}/frames?offset=0&limit=1`
     const response = await fetch(gameUrl)
@@ -29,34 +29,50 @@ export async function onGameStart(gameState: GameState) {
     gameData.Frames[0].Snakes.forEach((snake: APISnake) => {
         const snakeColor = snake.Color.substr(1) || 'FF00FF'
         colors[snake.Name] = snakeColor
-        for (let i = 0; i < numLights; i++) {
-            colorString += snakeColor
+        for (let i = 0; i < numLights - 1; i++) {
+            if (i === 0 && snake.ID === gameState.you.id) {
+                colorArray.push('FFFFFF')
+            } else {
+                colorArray.push(snakeColor)
+            }
         }
+        colorArray.push('000000') // Space between each player
     })
 
-    colorString = colorString.padEnd(PIXEL_COUNT * 6, '0')
+    while(colorArray.length < PIXEL_COUNT) {
+        colorArray.push('000000')
+    }
+
+    const colorString = colorArray.reverse().join('')
     await sendCloudFunction('colors', colorString)
     await sendCloudFunction('speed', '2000')
 }
 
 export async function onGameEnd(gameState: GameState) {
-    const { board } = gameState
+    const { board, you } = gameState
     if (!ACCESS_TOKEN) {
         console.error('Particle Access Token missing')
         return
     }
     let color = "000000"
+    const colorArray = []
     if (board.snakes.length) {
         const winner = board.snakes[0].name
         color = colors[winner] || "FF00FF"
+        if (board.snakes[0].id === gameState.you.id) {
+            colorArray.push('FFFFFF')
+        }
     }
-    const colorArray = []
-    for (let i = 0; i < PIXEL_COUNT; i++) {
+    while (colorArray.length < PIXEL_COUNT - 3) {
         colorArray.push(color)
     }
-    const colorString = colorArray.join('')
+    while (colorArray.length < PIXEL_COUNT) {
+        colorArray.push('000000')
+    }
+    
+    const colorString = colorArray.reverse().join('')
     sendCloudFunction('colors', colorString)
-    sendCloudFunction('speed', '0')
+    sendCloudFunction('speed', '6000')
 }
 
 async function sendCloudFunction(path: string, args: string) {
@@ -72,14 +88,3 @@ async function sendCloudFunction(path: string, args: string) {
     })
     return response
 }
-/*
-    The function to scrape names/colors from 
-    var colors = {}
-    var r = document.querySelectorAll('.ladder-row')
-    Array.from(r).forEach((e) => {
-        const name = e.querySelector('.arena-leaderboard-name').childNodes[2].textContent.trim()
-        const hex = e.querySelector('.d-snake-body').attributes.style.textContent.replace(/.*#(\S{6});.+/, '$1')
-        colors[name] = hex
-    })
-    colors
-*/
