@@ -23,8 +23,10 @@ export function info(): InfoResponse {
 }
 
 export function start(gameState: GameState): void {
-    console.log(`${gameState.game.id} ${gameState.you.id} START`)
-    onGameStart(gameState)
+    // console.log(`${gameState.game.id} ${gameState.you.id} START`)
+    onGameStart(gameState).catch((error) => {
+        console.warn('failed to update pixelring')
+    })
 }
 
 export function end(gameState: GameState): void {
@@ -39,7 +41,7 @@ export function end(gameState: GameState): void {
             result = `${name} - I WON!`
         }
     }
-    console.log(`${gameState.game.id} ${gameState.you.id} END - ${result}\n`)
+    // console.log(`${gameState.game.id} ${gameState.you.id} END - ${result}\n`)
     onGameEnd(gameState)
 }
 
@@ -108,7 +110,7 @@ export function move(gameState: GameState): MoveResponse {
                     chosenPath = path
                 }
             } catch (error) {
-                console.log(`${gameState.game.id} ${gameState.you.id} no path to food`)
+                // console.log(`${gameState.game.id} ${gameState.you.id} no path to food`)
             }
         })
         // Move to my own tail otherwise
@@ -120,7 +122,7 @@ export function move(gameState: GameState): MoveResponse {
                     chosenPath = path
                 }
             } catch (error) {
-                console.log(`${gameState.game.id} ${gameState.you.id} no path to my tail`)
+                // console.log(`${gameState.game.id} ${gameState.you.id} no path to my tail`)
             }
         }
         if (chosenPath.length > 1) {
@@ -174,7 +176,7 @@ export function move(gameState: GameState): MoveResponse {
     } else {
         response.shout = `Moving ${move}!`
     }
-    console.log(`${gameState.game.id} ${gameState.you.id} MOVE ${gameState.turn}: ${response.move}`)
+    // console.log(`${gameState.game.id} ${gameState.you.id} MOVE ${gameState.turn}: ${response.move}`)
     return response
 }
 

@@ -1,5 +1,6 @@
 import fetch from 'cross-fetch';
 import { GameState, APISnake } from "./types"
+import chalk from 'chalk'
 
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const DEVICE_ID = process.env.DEVICE_ID
@@ -26,8 +27,12 @@ export async function onGameStart(gameState: GameState) {
         console.error(gameData.error)
         return
     }
+    console.log(chalk.green(`Started ${gameState.game.ruleset.name} game from ${gameState.game.source}`))
+    console.log(chalk.yellow(`https://play.battlesnake.com/g/${game.id}/`))
     gameData.Frames[0].Snakes.forEach((snake: APISnake) => {
         const snakeColor = snake.Color.substr(1) || 'FF00FF'
+        // console.log(chalk.green('test'))
+        console.log(chalk.hex(snake.Color).bold(`◀■■■◗ ${snake.Name}`))
         colors[snake.Name] = snakeColor
         for (let i = 0; i < numLights - 1; i++) {
             if (i === 0 && snake.ID === gameState.you.id) {
@@ -56,12 +61,19 @@ export async function onGameEnd(gameState: GameState) {
     }
     let color = "000000"
     const colorArray = []
+    console.log(chalk.green(`Ended ${gameState.game.ruleset.name} game from ${gameState.game.source}`))
     if (board.snakes.length) {
-        const winner = board.snakes[0].name
-        color = colors[winner] || "FF00FF"
+        const winner = board.snakes[0]
+        color = colors[winner.name] || "FF00FF"
+        const snakeText = "◀" + "".padStart(winner.length - 2, "■") + "◗"
         if (board.snakes[0].id === gameState.you.id) {
+            console.log(chalk.hex(`#${color}`).bold(`${snakeText} ${winner.name} - I WON`))
             colorArray.push('FFFFFF')
+        } else {
+            console.log(chalk.hex(`#${color}`).bold(`${snakeText} ${winner.name} WINS`))
         }
+    } else {
+        console.log(chalk.grey.bold("IT'S A DRAW"))
     }
     while (colorArray.length < PIXEL_COUNT - 3) {
         colorArray.push(color)
