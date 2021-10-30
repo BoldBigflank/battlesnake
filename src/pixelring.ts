@@ -61,7 +61,7 @@ export async function onGameEnd(gameState: GameState) {
     }
     let color = "000000"
     const colorArray = []
-    console.log(chalk.green(`Ended ${gameState.game.ruleset.name} game from ${gameState.game.source}`))
+    console.log(chalk.green(`Ended ${gameState.game.ruleset.name} game from ${gameState.game.source} in ${gameState.turn} moves`))
     if (board.snakes.length) {
         const winner = board.snakes[0]
         color = colors[winner.name] || "FF00FF"
