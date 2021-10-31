@@ -27,8 +27,11 @@ export async function onGameStart(gameState: GameState) {
         console.error(gameData.error)
         return
     }
-    console.log(chalk.green(`Started ${gameState.game.ruleset.name} game from ${gameState.game.source}`))
-    console.log(chalk.yellow(`https://play.battlesnake.com/g/${game.id}/`))
+    console.log(
+        chalk.green('Started', chalk.yellow(`${gameState.game.ruleset.name}`), 'game'),
+        chalk.green('from', chalk.yellow(`${gameState.game.source}`))
+    )
+    console.log(chalk.blue(`https://play.battlesnake.com/g/${game.id}/`))
     gameData.Frames[0].Snakes.forEach((snake: APISnake) => {
         const snakeColor = snake.Color.substr(1) || 'FF00FF'
         // console.log(chalk.green('test'))
@@ -61,13 +64,20 @@ export async function onGameEnd(gameState: GameState) {
     }
     let color = "000000"
     const colorArray = []
-    console.log(chalk.green(`Ended ${gameState.game.ruleset.name} game from ${gameState.game.source} in ${gameState.turn} moves`))
+    console.log(
+        chalk.green('Ended', chalk.yellow(`${gameState.game.ruleset.name}`), 'game'),
+        chalk.green('from', chalk.yellow(`${gameState.game.source}`)),
+        chalk.green('in', chalk.yellow(`${gameState.turn}`), 'moves')
+    )
     if (board.snakes.length) {
         const winner = board.snakes[0]
         color = colors[winner.name] || "FF00FF"
         const snakeText = "◀" + "".padStart(winner.length - 2, "■") + "◗"
         if (board.snakes[0].id === gameState.you.id) {
-            console.log(chalk.hex(`#${color}`).bold(`${snakeText} ${winner.name} - I WON`))
+            console.log(
+                chalk.hex(`#${color}`).bold(`${snakeText} ${winner.name}`),
+                chalk.yellow(`- I WON`)
+            )
             colorArray.push('FFFFFF')
         } else {
             console.log(chalk.hex(`#${color}`).bold(`${snakeText} ${winner.name} WINS`))
