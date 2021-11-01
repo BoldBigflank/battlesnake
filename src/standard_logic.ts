@@ -5,10 +5,46 @@ import { onGameEnd, onGameStart } from "./pixelring"
 import { Router, Request, Response } from "express"
 
 const PRIORITIES = {
+    WANDER: 2,
     TO_FOOD: 3,
     SCARY_SNAKE: -5,
     YUMMY_SNAKE: 5,
     HAZARD_SAUCE: -4
+}
+
+// const MOORE_PATH = [
+//     ['➡','⬇','⬇','⬇','⬇','⬇','⬇','⬇','⬇','⬇','⬅'],
+//     ['➡','➡','➡','⬇','➡','➡','⬇','➡','➡','⬇','⬅'],
+//     ['➡','⬆','⬅','➡','⬆','⬆','➡','⬆','⬇','⬅','⬅'],
+//     ['➡','➡','⬆','⬇','⬅','⬅','⬇','⬅','➡','⬇','⬅'],
+//     ['➡','⬆','⬅','⬅','⬆','⬆','⬇','⬆','⬅','⬅','⬅'],
+//     ['➡','➡','➡','⬇','⬆','⬆','⬇','➡','➡','⬇','⬅'],
+//     ['➡','⬆','⬅','➡','⬆','⬆','➡','⬆','⬇','⬅','⬅'],
+//     ['➡','➡','⬆','⬇','⬅','⬅','⬇','⬅','➡','⬇','⬅'],
+//     ['➡','⬆','⬅','⬅','⬆','⬆','⬅','⬆','⬅','⬅','⬅'],
+//     ['➡','⬆','⬆','⬆','⬆','⬆','⬆','⬆','⬆','⬆','⬅'],
+//     ['➡','⬆','⬆','⬆','⬆','⬆','⬆','⬆','⬆','⬅','⬅']
+// ]
+
+const MOORE_PATH = [
+    ['➡','➡','⬇','➡','⬇','➡','⬇','➡','⬇','➡','⬇'],
+    ['⬆','⬅','➡','⬆','➡','⬆','⬇','⬆','➡','⬆','⬇'],
+    ['➡','⬆','⬇','⬅','⬅','⬇','⬅','⬆','⬅','⬇','⬅'],
+    ['⬆','⬅','⬅','➡','⬆','⬇','➡','⬇','⬆','➡','⬇'],
+    ['➡','➡','⬇','⬆','⬅','➡','⬆','➡','⬆','⬇','⬅'],
+    ['⬆','⬅','➡','➡','⬆','⬆','⬇','⬅','⬅','➡','⬇'],
+    ['➡','⬆','⬇','⬅','⬇','⬅','➡','⬇','⬆','⬅','⬅'],
+    ['⬆','⬅','⬇','⬆','⬅','⬆','⬇','⬅','➡','➡','⬇'],
+    ['➡','⬆','➡','⬇','➡','⬆','➡','➡','⬆','⬇','⬅'],
+    ['⬆','⬇','⬅','⬇','⬆','⬇','⬅','⬇','⬇','➡','⬇'],
+    ['⬆','⬅','⬆','⬅','⬆','⬅','⬆','⬅','⬆','⬅','⬅']
+]
+
+const AS_DIRECTION: Record<string, string> = {
+    '➡': 'right',
+    '⬆': 'up',
+    '⬅': 'left',
+    '⬇': 'down'
 }
 
 export function routes(router: Router) {
@@ -37,8 +73,8 @@ function info(): InfoResponse {
         apiversion: "1",
         author: "Alex Swan",
         color: "#4BC377",
-        head: "pixel",
-        tail: "pixel"
+        head: "happy",
+        tail: "round-bum"
     }
     return response
 }
@@ -118,38 +154,42 @@ function move(gameState: GameState): MoveResponse {
     // TODO: Step 5 - Select a move to make based on strategy, rather than random.
     // Use information in gameState to seek out and find food.
 
-    /*
-        Prioritize the direction that goes toward the closest food
-    */
-    // New way, build and use a grid
-    const grid = new Grid(gameState, myHead)
-    let chosenPath: string[] = []
-        gameState.board.food.forEach((food) => {
-            try {
-                const path = grid.findPath(food)
-                if (!chosenPath.length || chosenPath.length > path.length) {
-                    chosenPath = path
-                }
-            } catch (error) {
-                // console.log(`${gameState.game.id} ${gameState.you.id} no path to food`)
-            }
-        })
-        // Move to my own tail otherwise
-        if (!chosenPath.length) {
-            try {
-                const path = grid.findPath(gameState.you.body[gameState.you.length-1])
-                if (path.length > 1) { // Gotta have space
-                    // TODO: Make sure we don't hit our tail right after eating
-                    chosenPath = path
-                }
-            } catch (error) {
-                // console.log(`${gameState.game.id} ${gameState.you.id} no path to my tail`)
-            }
-        }
-        if (chosenPath.length > 1) {
-            const direction = getDirection(myHead, chosenPath[1])
-            if (direction) priorityMoves[direction] += PRIORITIES.TO_FOOD
-        }
+    // /*
+    //     Prioritize the direction that goes toward the closest food
+    // */
+    // // New way, build and use a grid
+    // const grid = new Grid(gameState, myHead)
+    // let chosenPath: string[] = []
+    // gameState.board.food.forEach((food) => {
+    //     try {
+    //         const path = grid.findPath(food)
+    //         if (!chosenPath.length || chosenPath.length > path.length) {
+    //             chosenPath = path
+    //         }
+    //     } catch (error) {
+    //         // console.log(`${gameState.game.id} ${gameState.you.id} no path to food`)
+    //     }
+    // })
+    // // Move to my own tail otherwise
+    // if (!chosenPath.length) {
+    //     try {
+    //         const path = grid.findPath(gameState.you.body[gameState.you.length-1])
+    //         if (path.length > 1) { // Gotta have space
+    //             // TODO: Make sure we don't hit our tail right after eating
+    //             chosenPath = path
+    //         }
+    //     } catch (error) {
+    //         // console.log(`${gameState.game.id} ${gameState.you.id} no path to my tail`)
+    //     }
+    // }
+    // if (chosenPath.length > 1) {
+    //     const direction = getDirection(myHead, chosenPath[1])
+    //     if (direction) priorityMoves[direction] += PRIORITIES.TO_FOOD
+    // }
+
+    const moorePathArrow: string = MOORE_PATH[MOORE_PATH.length - myHead.y - 1][myHead.x]
+    const moorePathDirection: string = AS_DIRECTION[moorePathArrow]
+    priorityMoves[moorePathDirection] += PRIORITIES.WANDER
 
     /*
         Deprioritize spaces that might be taken by bigger snakes
@@ -186,7 +226,6 @@ function move(gameState: GameState): MoveResponse {
     // Take the highest priority move
     const move = Object.keys(priorityMoves)
         .sort((moveA, moveB) => priorityMoves[moveB] - priorityMoves[moveA])[0]
-
     // Finally, choose a move from the available safe moves.
     const response: MoveResponse = {
         move,
