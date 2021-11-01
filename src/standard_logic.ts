@@ -1,7 +1,8 @@
-import { InfoResponse, GameState, MoveResponse, Coord, CompetitorRecord } from "./types"
+import { InfoResponse, GameState, MoveResponse, Coord } from "./types"
 import Grid from './grid'
 import { coordDistance } from "./util"
 import { onGameEnd, onGameStart } from "./pixelring"
+import { Router, Request, Response } from "express"
 
 const PRIORITIES = {
     TO_FOOD: 3,
@@ -10,26 +11,46 @@ const PRIORITIES = {
     HAZARD_SAUCE: -4
 }
 
-export function info(): InfoResponse {
+export function routes(router: Router) {
+    router.get("/", (req: Request, res: Response) => {
+        res.send(info())
+    });
+
+    router.post("/start", (req: Request, res: Response) => {
+        res.send(start(req.body))
+    });
+
+    router.post("/move", (req: Request, res: Response) => {
+        res.send(move(req.body))
+    });
+
+    router.post("/end", (req: Request, res: Response) => {
+        res.send(end(req.body))
+    });
+
+    return router
+}
+
+function info(): InfoResponse {
     console.log("INFO")
     const response: InfoResponse = {
         apiversion: "1",
-        author: "boldbigflank",
-        color: "#1778B5",
+        author: "Alex Swan",
+        color: "#4BC377",
         head: "pixel",
         tail: "pixel"
     }
     return response
 }
 
-export function start(gameState: GameState): void {
+function start(gameState: GameState): void {
     // console.log(`${gameState.game.id} ${gameState.you.id} START`)
     onGameStart(gameState).catch((error) => {
         console.warn('failed to update pixelring')
     })
 }
 
-export function end(gameState: GameState): void {
+function end(gameState: GameState): void {
     let result = 'UNKNONWN'
     if (gameState.board.snakes.length === 0) {
         result = 'DRAW'
@@ -45,7 +66,7 @@ export function end(gameState: GameState): void {
     onGameEnd(gameState)
 }
 
-export function move(gameState: GameState): MoveResponse {
+function move(gameState: GameState): MoveResponse {
     let priorityMoves: { [key: string]: number } = {
         down: 100,
         left: 100,
