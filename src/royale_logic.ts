@@ -124,32 +124,32 @@ function move(gameState: GameState): MoveResponse {
     // New way, build and use a grid
     const grid = new Grid(gameState, myHead)
     let chosenPath: string[] = []
-        gameState.board.food.forEach((food) => {
-            try {
-                const path = grid.findPath(food)
-                if (!chosenPath.length || chosenPath.length > path.length) {
-                    chosenPath = path
-                }
-            } catch (error) {
-                // console.log(`${gameState.game.id} ${gameState.you.id} no path to food`)
+    gameState.board.food.forEach((food) => {
+        try {
+            const path = grid.findPath(food)
+            if (!chosenPath.length || chosenPath.length > path.length) {
+                chosenPath = path
             }
-        })
-        // Move to my own tail otherwise
-        if (!chosenPath.length) {
-            try {
-                const path = grid.findPath(gameState.you.body[gameState.you.length-1])
-                if (path.length > 1) { // Gotta have space
-                    // TODO: Make sure we don't hit our tail right after eating
-                    chosenPath = path
-                }
-            } catch (error) {
-                // console.log(`${gameState.game.id} ${gameState.you.id} no path to my tail`)
+        } catch (error) {
+            // console.log(`${gameState.game.id} ${gameState.you.id} no path to food`)
+        }
+    })
+    // Move to my own tail otherwise
+    if (!chosenPath.length) {
+        try {
+            const path = grid.findPath(gameState.you.body[gameState.you.length-1])
+            if (path.length > 1) { // Gotta have space
+                // TODO: Make sure we don't hit our tail right after eating
+                chosenPath = path
             }
+        } catch (error) {
+            // console.log(`${gameState.game.id} ${gameState.you.id} no path to my tail`)
         }
-        if (chosenPath.length > 1) {
-            const direction = getDirection(myHead, chosenPath[1])
-            if (direction) priorityMoves[direction] += PRIORITIES.TO_FOOD
-        }
+    }
+    if (chosenPath.length > 1) {
+        const direction = getDirection(myHead, chosenPath[1])
+        if (direction) priorityMoves[direction] += PRIORITIES.TO_FOOD
+    }
 
     /*
         Deprioritize spaces that might be taken by bigger snakes

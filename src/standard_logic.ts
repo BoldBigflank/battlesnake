@@ -1,8 +1,8 @@
 import { InfoResponse, GameState, MoveResponse, Coord } from "./types"
-import Grid from './grid'
 import { coordDistance } from "./util"
 import { onGameEnd, onGameStart } from "./pixelring"
 import { Router, Request, Response } from "express"
+import Grid from './standard_grid'
 
 const PRIORITIES = {
     WANDER: 2,
@@ -11,34 +11,6 @@ const PRIORITIES = {
     YUMMY_SNAKE: 5,
     HAZARD_SAUCE: -4
 }
-
-// const MOORE_PATH = [
-//     ['➡','⬇','⬇','⬇','⬇','⬇','⬇','⬇','⬇','⬇','⬅'],
-//     ['➡','➡','➡','⬇','➡','➡','⬇','➡','➡','⬇','⬅'],
-//     ['➡','⬆','⬅','➡','⬆','⬆','➡','⬆','⬇','⬅','⬅'],
-//     ['➡','➡','⬆','⬇','⬅','⬅','⬇','⬅','➡','⬇','⬅'],
-//     ['➡','⬆','⬅','⬅','⬆','⬆','⬇','⬆','⬅','⬅','⬅'],
-//     ['➡','➡','➡','⬇','⬆','⬆','⬇','➡','➡','⬇','⬅'],
-//     ['➡','⬆','⬅','➡','⬆','⬆','➡','⬆','⬇','⬅','⬅'],
-//     ['➡','➡','⬆','⬇','⬅','⬅','⬇','⬅','➡','⬇','⬅'],
-//     ['➡','⬆','⬅','⬅','⬆','⬆','⬅','⬆','⬅','⬅','⬅'],
-//     ['➡','⬆','⬆','⬆','⬆','⬆','⬆','⬆','⬆','⬆','⬅'],
-//     ['➡','⬆','⬆','⬆','⬆','⬆','⬆','⬆','⬆','⬅','⬅']
-// ]
-
-const MOORE_PATH = [
-    ['➡','➡','⬇','➡','⬇','➡','⬇','➡','⬇','➡','⬇'],
-    ['⬆','⬅','➡','⬆','➡','⬆','⬇','⬆','➡','⬆','⬇'],
-    ['➡','⬆','⬇','⬅','⬅','⬇','⬅','⬆','⬅','⬇','⬅'],
-    ['⬆','⬅','⬅','➡','⬆','⬇','➡','⬇','⬆','➡','⬇'],
-    ['➡','➡','⬇','⬆','⬅','➡','⬆','➡','⬆','⬇','⬅'],
-    ['⬆','⬅','➡','➡','⬆','⬆','⬇','⬅','⬅','➡','⬇'],
-    ['➡','⬆','⬇','⬅','⬇','⬅','➡','⬇','⬆','⬅','⬅'],
-    ['⬆','⬅','⬇','⬆','⬅','⬆','⬇','⬅','➡','➡','⬇'],
-    ['➡','⬆','➡','⬇','➡','⬆','➡','➡','⬆','⬇','⬅'],
-    ['⬆','⬇','⬅','⬇','⬆','⬇','⬅','⬇','⬇','➡','⬇'],
-    ['⬆','⬅','⬆','⬅','⬆','⬅','⬆','⬅','⬆','⬅','⬅']
-]
 
 const AS_DIRECTION: Record<string, string> = {
     '➡': 'right',
@@ -72,7 +44,7 @@ function info(): InfoResponse {
     const response: InfoResponse = {
         apiversion: "1",
         author: "Alex Swan",
-        color: "#4BC377",
+        color: "#0FC47C",
         head: "happy",
         tail: "round-bum"
     }
@@ -154,42 +126,49 @@ function move(gameState: GameState): MoveResponse {
     // TODO: Step 5 - Select a move to make based on strategy, rather than random.
     // Use information in gameState to seek out and find food.
 
-    // /*
-    //     Prioritize the direction that goes toward the closest food
-    // */
-    // // New way, build and use a grid
-    // const grid = new Grid(gameState, myHead)
-    // let chosenPath: string[] = []
-    // gameState.board.food.forEach((food) => {
-    //     try {
-    //         const path = grid.findPath(food)
-    //         if (!chosenPath.length || chosenPath.length > path.length) {
-    //             chosenPath = path
-    //         }
-    //     } catch (error) {
-    //         // console.log(`${gameState.game.id} ${gameState.you.id} no path to food`)
-    //     }
-    // })
-    // // Move to my own tail otherwise
-    // if (!chosenPath.length) {
-    //     try {
-    //         const path = grid.findPath(gameState.you.body[gameState.you.length-1])
-    //         if (path.length > 1) { // Gotta have space
-    //             // TODO: Make sure we don't hit our tail right after eating
-    //             chosenPath = path
-    //         }
-    //     } catch (error) {
-    //         // console.log(`${gameState.game.id} ${gameState.you.id} no path to my tail`)
-    //     }
-    // }
-    // if (chosenPath.length > 1) {
-    //     const direction = getDirection(myHead, chosenPath[1])
-    //     if (direction) priorityMoves[direction] += PRIORITIES.TO_FOOD
-    // }
-
-    const moorePathArrow: string = MOORE_PATH[MOORE_PATH.length - myHead.y - 1][myHead.x]
-    const moorePathDirection: string = AS_DIRECTION[moorePathArrow]
-    priorityMoves[moorePathDirection] += PRIORITIES.WANDER
+    /*
+        Low Priority wandering path
+    */
+    // const moorePathArrow: string = SNAKE_PATH[SNAKE_PATH.length - myHead.y - 1][myHead.x]
+    // const moorePathDirection: string = AS_DIRECTION[moorePathArrow]
+    // priorityMoves[moorePathDirection] += PRIORITIES.WANDER
+    const grid = new Grid(gameState, myHead)
+    let chosenPath: string[] = []
+    if (gameState.you.health > 50) {
+        // Wander
+        const targets: Coord[] = [
+            { x: 5, y: 4 },
+            { x: 4, y: 5 },
+            { x: 5, y: 6 },
+            { x: 6, y: 5 }
+        ]
+        targets.forEach((target) => {
+            try {
+                const path = grid.findPath(target)
+                if (path.length === 1) return
+                if (chosenPath.length !== 0 && path.length > chosenPath.length) return
+                chosenPath = [...path]
+            } catch (error) {
+                // console.log(error)
+            }
+        })
+    } else {
+        // Head to food
+        gameState.board.food.forEach((food) => {
+            try {
+                const path = grid.findPath(food)
+                if (path.length === 1) return
+                if (chosenPath.length !== 0 && path.length > chosenPath.length) return
+                chosenPath = [...path]
+            } catch (error) {
+                // console.log(error)
+            }
+        })
+    }
+    if (chosenPath.length > 1) {
+        const direction = getDirection(myHead, chosenPath[1])
+        if (direction) priorityMoves[direction] += PRIORITIES.TO_FOOD
+    }
 
     /*
         Deprioritize spaces that might be taken by bigger snakes
