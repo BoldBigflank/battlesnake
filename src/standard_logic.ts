@@ -134,8 +134,26 @@ function move(gameState: GameState): MoveResponse {
     // priorityMoves[moorePathDirection] += PRIORITIES.WANDER
     const grid = new Grid(gameState, myHead)
     let chosenPath: string[] = []
+    // Wander targets
+    const targets: Coord[] = [
+        { x: 3, y: 5 },
+        { x: 5, y: 7 },
+        { x: 7, y: 5 },
+        { x: 5, y: 3 }
+    ]
+    targets.forEach((target) => {
+        try {
+            const path: string[] = grid.findPath(target)
+            if (path.length === 1) return
+            if (chosenPath.length !== 0 && path.length > chosenPath.length) return
+            chosenPath = [...path]
+        } catch (error) {
+            // console.log(error)
+        }
+    })
+
     const shouldEat = (
-        gameState.you.health <= 50 ||
+        gameState.you.health <= 20 ||
         gameState.board.snakes.some((snake) => {
             return (
                 snake.id !== gameState.you.id
@@ -143,6 +161,7 @@ function move(gameState: GameState): MoveResponse {
             )
         })
     )
+
     if (shouldEat) {
         // Head to food
         gameState.board.food.forEach((food) => {
@@ -155,25 +174,8 @@ function move(gameState: GameState): MoveResponse {
                 // console.log(error)
             }
         })
-    } else {
-        // Wander
-        const targets: Coord[] = [
-            { x: 3, y: 5 },
-            { x: 5, y: 7 },
-            { x: 7, y: 5 },
-            { x: 5, y: 3 }
-        ]
-        targets.forEach((target) => {
-            try {
-                const path = grid.findPath(target)
-                if (path.length === 1) return
-                if (chosenPath.length !== 0 && path.length > chosenPath.length) return
-                chosenPath = [...path]
-            } catch (error) {
-                // console.log(error)
-            }
-        })
     }
+
     if (chosenPath.length > 1) {
         const direction = getDirection(myHead, chosenPath[1])
         if (direction) priorityMoves[direction] += PRIORITIES.TO_FOOD
