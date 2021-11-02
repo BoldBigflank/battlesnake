@@ -53,10 +53,11 @@ export default class Grid {
                 const key = this.keyName({x, y})
                 const edges: Edges = {}
 
-                if (x > 0) edges[`${x-1},${y}`] = this.you.health
-                if (x < this.board.width - 1) edges[`${x+1},${y}`] = this.you.health
-                if (y > 0) edges[`${x},${y-1}`] = 100
-                if (y < this.board.height - 1) edges[`${x},${y+1}`] = this.you.health
+                const edgeWeight = this.you.health * 4
+                if (x > 0) edges[`${x-1},${y}`] = edgeWeight
+                if (x < this.board.width - 1) edges[`${x+1},${y}`] = edgeWeight
+                if (y > 0) edges[`${x},${y-1}`] = edgeWeight
+                if (y < this.board.height - 1) edges[`${x},${y+1}`] = edgeWeight
 
                 graph[key] = edges
             }
