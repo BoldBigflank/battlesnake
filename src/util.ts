@@ -1,4 +1,4 @@
-import { Coord } from "./types"
+import { GameState, Coord } from "./types"
 
 export function coordDistance(a: Coord, b: Coord) {
     const dx = (b.x - a.x)
@@ -9,4 +9,10 @@ export function coordDistance(a: Coord, b: Coord) {
 
 export function isAdjacent(a: Coord, b: Coord): boolean {
     return coordDistance(a, b) === 1
+}
+
+export function hasFood(gameState: GameState, coord: Coord) {
+    return gameState.board.food.some((food) => {
+        return food.x === coord.x && food.y === coord.y
+    })
 }

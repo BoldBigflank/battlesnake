@@ -1,5 +1,5 @@
 import { InfoResponse, GameState, MoveResponse, Coord } from "./types"
-import { coordDistance } from "./util"
+import { coordDistance, hasFood } from "./util"
 import { onGameEnd, onGameStart } from "./pixelring"
 import { Router, Request, Response } from "express"
 import Grid from './standard_grid'
@@ -134,17 +134,20 @@ function move(gameState: GameState): MoveResponse {
     // priorityMoves[moorePathDirection] += PRIORITIES.WANDER
     const grid = new Grid(gameState, myHead)
     let chosenPath: string[] = []
-    if (gameState.you.health > 50) {
-        // Wander
-        const targets: Coord[] = [
-            { x: 5, y: 4 },
-            { x: 4, y: 5 },
-            { x: 5, y: 6 },
-            { x: 6, y: 5 }
-        ]
-        targets.forEach((target) => {
+    const shouldEat = (
+        gameState.you.health <= 50 ||
+        gameState.board.snakes.some((snake) => {
+            return (
+                snake.id !== gameState.you.id
+                && snake.length >= gameState.you.length
+            )
+        })
+    )
+    if (shouldEat) {
+        // Head to food
+        gameState.board.food.forEach((food) => {
             try {
-                const path = grid.findPath(target)
+                const path = grid.findPath(food)
                 if (path.length === 1) return
                 if (chosenPath.length !== 0 && path.length > chosenPath.length) return
                 chosenPath = [...path]
@@ -153,10 +156,16 @@ function move(gameState: GameState): MoveResponse {
             }
         })
     } else {
-        // Head to food
-        gameState.board.food.forEach((food) => {
+        // Wander
+        const targets: Coord[] = [
+            { x: 3, y: 5 },
+            { x: 5, y: 7 },
+            { x: 7, y: 5 },
+            { x: 5, y: 3 }
+        ]
+        targets.forEach((target) => {
             try {
-                const path = grid.findPath(food)
+                const path = grid.findPath(target)
                 if (path.length === 1) return
                 if (chosenPath.length !== 0 && path.length > chosenPath.length) return
                 chosenPath = [...path]
@@ -190,13 +199,17 @@ function move(gameState: GameState): MoveResponse {
         } else { // Scary snake
             if (snakeHead.y > myHead.y) {
                 priorityMoves.up += PRIORITIES.SCARY_SNAKE
+                if (hasFood(gameState, {x: myHead.x, y: myHead.y + 1})) priorityMoves.up -= 2 * PRIORITIES.TO_FOOD
             } else if (snakeHead.y < myHead.y) {
                 priorityMoves.down += PRIORITIES.SCARY_SNAKE
+                if (hasFood(gameState, {x: myHead.x, y: myHead.y - 1})) priorityMoves.down -= 2 * PRIORITIES.TO_FOOD
             }
             if (snakeHead.x > myHead.x) {
                 priorityMoves.right += PRIORITIES.SCARY_SNAKE
+                if (hasFood(gameState, {x: myHead.x + 1, y: myHead.y})) priorityMoves.righ -= 2 * PRIORITIES.TO_FOOD
             } else if (snakeHead.x < myHead.x) {
                 priorityMoves.left += PRIORITIES.SCARY_SNAKE
+                if (hasFood(gameState, {x: myHead.x - 1, y: myHead.y})) priorityMoves.left -= 2 * PRIORITIES.TO_FOOD
             }
         }
 
