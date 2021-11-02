@@ -53,41 +53,55 @@ export default class Grid {
                 const key = this.keyName({x, y})
                 const edges: Edges = {}
 
-                if (x > 0) edges[`${x-1},${y}`] = 100
-                if (x < this.board.width - 1) edges[`${x+1},${y}`] = 100
+                if (x > 0) edges[`${x-1},${y}`] = this.you.health
+                if (x < this.board.width - 1) edges[`${x+1},${y}`] = this.you.health
                 if (y > 0) edges[`${x},${y-1}`] = 100
-                if (y < this.board.height - 1) edges[`${x},${y+1}`] = 100
+                if (y < this.board.height - 1) edges[`${x},${y+1}`] = this.you.health
 
                 graph[key] = edges
             }
         }
 
-        for (let y = 0; y < this.board.height; y++) {
-            for (let x = 0; x < this.board.width; x++) {
-                const key = this.keyName({x, y})
-                const edges: Edges = graph[key]
-
-                const path = SnakePathCoord(x, y)
-                if (path === 'up') {
-                    // into this one
-                    graph[this.keyName({x, y: y+1})][key] = 1
-                    // backwards
-                    edges[`${x},${y+1}`] = 1
+        /* 
+            WANDER MODE
+        */
+       const shouldEat = (
+            this.you.health <= 20 ||
+            this.board.snakes.some((snake) => {
+                return (
+                    snake.id !== this.you.id
+                    && snake.length >= this.you.length
+                )
+            })
+        )
+        if (!shouldEat) {
+            for (let y = 0; y < this.board.height; y++) {
+                for (let x = 0; x < this.board.width; x++) {
+                    const key = this.keyName({x, y})
+                    const edges: Edges = graph[key]
+    
+                    const path = SnakePathCoord(x, y)
+                    if (path === 'up') {
+                        // into this one
+                        graph[this.keyName({x, y: y+1})][key] = 1
+                        // backwards
+                        edges[`${x},${y+1}`] = 1
+                    }
+                    if (path === 'down') {
+                        graph[this.keyName({x, y: y-1})][key] = 1
+                        edges[`${x},${y-1}`] = 1
+                    }
+                    if (path === 'left') {
+                        graph[this.keyName({x: x-1, y})][key] = 1
+                        edges[`${x-1},${y}`] = 1
+                    }
+                    if (path === 'right') {
+                        graph[this.keyName({x: x+1, y})][key] = 1
+                        edges[`${x+1},${y}`] = 1
+                    }
+                    
+                    graph[key] = edges
                 }
-                if (path === 'down') {
-                    graph[this.keyName({x, y: y-1})][key] = 1
-                    edges[`${x},${y-1}`] = 1
-                }
-                if (path === 'left') {
-                    graph[this.keyName({x: x-1, y})][key] = 1
-                    edges[`${x-1},${y}`] = 1
-                }
-                if (path === 'right') {
-                    graph[this.keyName({x: x+1, y})][key] = 1
-                    edges[`${x+1},${y}`] = 1
-                }
-                
-                graph[key] = edges
             }
         }
 
