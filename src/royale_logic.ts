@@ -37,7 +37,7 @@ function info(): InfoResponse {
         apiversion: "1",
         author: "boldbigflank",
         color: "#1778B5",
-        head: "pixel",
+        head: "orca",
         tail: "pixel"
     }
     return response
