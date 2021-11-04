@@ -38,7 +38,7 @@ function info(): InfoResponse {
         author: "boldbigflank",
         color: "#1778B5",
         head: "orca",
-        tail: "pixel"
+        tail: "round-bum"
     }
     return response
 }
