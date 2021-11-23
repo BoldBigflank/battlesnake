@@ -99,3 +99,9 @@ Want to contribute to Battlesnake? We have a number of open-source codebases and
 ## Feedback
 
 **Do you have an issue or suggestions for this repository?** Head over to our [Feedback Repository](https://play.battlesnake.com/feedback?utm_source=github&utm_medium=readme&utm_campaign=typescript_starter&utm_content=feedback) today and let us know!
+
+## Public Snakes to test against
+Devious Devin (Beta)
+Nessegrev-beta
+RedDragon
+Kisnake

@@ -16,3 +16,28 @@ export function hasFood(gameState: GameState, coord: Coord) {
         return food.x === coord.x && food.y === coord.y
     })
 }
+
+export function up(coord: Coord, distance: number = 1): Coord {
+    return {
+        ...coord,
+        y: coord.y += distance
+    }
+}
+export function down(coord: Coord, distance: number = 1): Coord {
+    return {
+        ...coord,
+        y: coord.y -= distance
+    }
+}
+export function right(coord: Coord, distance: number = 1): Coord {
+    return {
+        ...coord,
+        x: coord.x += distance
+    }
+}
+export function left(coord: Coord, distance: number = 1): Coord {
+    return {
+        ...coord,
+        x: coord.x -= distance
+    }
+}

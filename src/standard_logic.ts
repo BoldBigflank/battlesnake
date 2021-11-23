@@ -12,13 +12,6 @@ const PRIORITIES = {
     HAZARD_SAUCE: -4
 }
 
-const AS_DIRECTION: Record<string, string> = {
-    '➡': 'right',
-    '⬆': 'up',
-    '⬅': 'left',
-    '⬇': 'down'
-}
-
 export function routes(router: Router) {
     router.get("/", (req: Request, res: Response) => {
         res.send(info())

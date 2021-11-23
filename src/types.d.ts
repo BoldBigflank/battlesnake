@@ -12,6 +12,7 @@ export interface InfoResponse {
 export interface MoveResponse {
     move: string;
     shout?: string;
+    thoughts?: Coord[]
 }
 
 export interface RoyaleSettings {
@@ -49,6 +50,8 @@ export interface Game {
 export interface Coord {
     x: number;
     y: number;
+    color?: string;
+    r?: number;
 }
 
 export interface Battlesnake {
@@ -80,6 +83,7 @@ export interface GameState {
     turn: number;
     board: Board;
     you: Battlesnake;
+    thoughts: boolean;
 }
 
 export type Graph = Record<string,Edges>

@@ -1,6 +1,6 @@
 import { InfoResponse, GameState, MoveResponse, Coord } from "./types"
 import Grid from './grid'
-import { coordDistance } from "./util"
+import { coordDistance, up, down, left, right } from "./util"
 import { onGameEnd, onGameStart } from "./pixelring"
 import { Router, Request, Response } from "express"
 
@@ -189,7 +189,7 @@ function move(gameState: GameState): MoveResponse {
 
     // Finally, choose a move from the available safe moves.
     const response: MoveResponse = {
-        move,
+        move
     }
 
     if (move === undefined) {
@@ -197,6 +197,37 @@ function move(gameState: GameState): MoveResponse {
     } else {
         response.shout = `Moving ${move}!`
     }
+
+    if (gameState.thoughts) {
+        response.thoughts = []
+        if (chosenPath.length > 1) response.thoughts = chosenPath.splice(1).map((coord) => ({
+            x: parseInt(coord.split(',')[0], 10),
+            y: parseInt(coord.split(',')[1], 10),
+            color: '#000000',
+            r: 3
+        }))
+        const chosenDot = {
+            color: '#00ff00',
+            r: 2
+        }
+        if (move === 'up') response.thoughts.push(up({
+            ...myHead,
+            ...chosenDot
+        }))
+        if (move === 'down') response.thoughts.push(down({
+            ...myHead,
+            ...chosenDot
+        }))
+        if (move === 'left') response.thoughts.push(left({
+            ...myHead,
+            ...chosenDot
+        }))
+        if (move === 'right') response.thoughts.push(right({
+            ...myHead,
+            ...chosenDot
+        }))
+    }
+    
     // console.log(`${gameState.game.id} ${gameState.you.id} MOVE ${gameState.turn}: ${response.move}`)
     return response
 }
