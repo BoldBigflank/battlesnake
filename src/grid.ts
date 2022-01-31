@@ -1,11 +1,11 @@
 /// <reference path='./dijkstra.d.ts' />
 import { InfoResponse, GameState, Game, Board, Battlesnake, MoveResponse, Coord, Graph, Edges } from "./types"
-import { coordDistance, isAdjacent } from "./util"
 import * as dijkstra from 'dijkstrajs'
 
 export default class Grid {
     game: Game
     graph: Graph
+    distanceGraph: Graph
     board: Board
     start: Coord
     you: Battlesnake
@@ -13,6 +13,7 @@ export default class Grid {
     constructor(gameState: GameState, start: Coord) {
         this.game = gameState.game
         this.graph = {}
+        this.distanceGraph = {}
         this.board = gameState.board
         this.you = gameState.you
         this.start = start
@@ -21,16 +22,42 @@ export default class Grid {
 
     buildGrid(): void {
         this.graph = {}
+        this.distanceGraph = {}
         const graph = this.graph
-        for (let y = 0; y < this.board.height; y++) {
-            for (let x = 0; x < this.board.width; x++) {
+        const boardWidth = this.board.width
+        const boardHeight = this.board.height
+        for (let y = 0; y < boardHeight; y++) {
+            for (let x = 0; x < boardWidth; x++) {
                 const key = this.keyName({x, y})
                 const edges: Edges = {}
-                if (x > 0) edges[`${x-1},${y}`] = this.board.width - x + 10
-                if (x < this.board.width - 1) edges[`${x+1},${y}`] = x + 10
-                if (y > 0) edges[`${x},${y-1}`] = this.board.height - y + 10
-                if (y < this.board.height - 1) edges[`${x},${y+1}`] = y + 10
+                if (x > 0) edges[`${x-1},${y}`] = boardWidth - x + 10 // to the left
+                if (x < boardWidth - 1) edges[`${x+1},${y}`] = x + 10 // to the right
+                if (y > 0) edges[`${x},${y-1}`] = boardHeight - y + 10
+                if (y < boardHeight - 1) edges[`${x},${y+1}`] = y + 10
+
+                // Wrapped mode edges
+                if (this.game.ruleset.name === 'wrapped') {
+                    if (x === 0) edges[`${boardWidth-1},${y}`] = boardWidth + 10
+                    if (x === boardWidth - 1) edges[`${0},${y}`] = x + 10
+                    if (y === 0) edges[`${x},${boardHeight-1}`] = boardHeight + 10
+                    if (y === boardHeight - 1) edges[`${x},${0}`] = y + 10
+                }
                 graph[key] = edges
+
+                // Distance graph stuff
+                const distanceEdges: Edges = {}
+                if (x > 0) distanceEdges[`${x-1},${y}`] = 1
+                if (x < boardWidth - 1) distanceEdges[`${x+1},${y}`] = 1
+                if (y > 0) distanceEdges[`${x},${y-1}`] = 1
+                if (y < boardHeight - 1) distanceEdges[`${x},${y+1}`] = 1
+
+                if (this.game.ruleset.name === 'wrapped') {
+                    if (x === 0) distanceEdges[`${boardWidth-1},${y}`] = 1
+                    if (x === boardWidth - 1) distanceEdges[`${0},${y}`] = 1
+                    if (y === 0) distanceEdges[`${x},${boardHeight-1}`] = 1
+                    if (y === boardHeight - 1) distanceEdges[`${x},${0}`] = 1
+                }
+                this.distanceGraph[key] = distanceEdges
             }
         }
         
@@ -52,12 +79,12 @@ export default class Grid {
             if (
                 snake.id !== this.you.id
                 && snake.health === 1
-                && !this.board.food.some((food) => isAdjacent(food, snake.head))
+                && !this.board.food.some((food) => this.findDistance(food) === 1)
             ) {
                 return
             }
             snake.body.forEach((coord, i) => {
-                const distance = coordDistance(this.start, coord)
+                const distance = this.findDistance(coord)
                 if (distance >= (snake.length - i)) return // It's gonna be gone then
                 // There's a small chance that the snake might run out of health or
                 // Move out of bounds and be removed before our move resolves
@@ -74,11 +101,13 @@ export default class Grid {
     }
 
     adjKeys(coord: Coord): Coord[] {
+        const boardWidth = this.board.width
+        const boardHeight = this.board.height
         return [
-            { x: coord.x, y: coord.y + 1 },
-            { x: coord.x, y: coord.y - 1 },
-            { x: coord.x + 1, y: coord.y },
-            { x: coord.x - 1, y: coord.y }
+            { x: coord.x, y: (coord.y + 1) % boardHeight },
+            { x: coord.x, y: (coord.y - 1 + boardHeight) % boardHeight },
+            { x: (coord.x + 1) % boardWidth, y: coord.y },
+            { x: (coord.x - 1 + boardWidth) % boardWidth, y: coord.y }
         ]
     }
 
@@ -99,6 +128,10 @@ export default class Grid {
 
     findPath(coord: Coord) {
         return dijkstra.find_path(this.graph, this.keyName(this.start), this.keyName(coord))
+    }
+
+    findDistance(coord: Coord) {
+        return dijkstra.find_path(this.distanceGraph, this.keyName(this.start), this.keyName(coord)).length - 1
     }
 }
 

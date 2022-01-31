@@ -1,6 +1,6 @@
 import { InfoResponse, GameState, MoveResponse, Coord } from "./types"
 import Grid from './grid'
-import { coordDistance, up, down, left, right } from "./util"
+import { up, down, left, right } from "./util"
 import { onGameEnd, onGameStart } from "./pixelring"
 import { Router, Request, Response } from "express"
 
@@ -81,17 +81,20 @@ function move(gameState: GameState): MoveResponse {
     // 0, 0 is bottom left square
     const boardWidth = gameState.board.width
     const boardHeight = gameState.board.height
-    if (myHead.x === 0) {
-        priorityMoves.left = 0
-    }
-    if (myHead.x === boardWidth - 1) {
-        priorityMoves.right = 0
-    }
-    if (myHead.y === 0) {
-        priorityMoves.down = 0
-    }
-    if (myHead.y === boardHeight - 1) {
-        priorityMoves.up = 0
+
+    if (gameState.game.ruleset.name !== 'wrapped') {
+        if (myHead.x === 0) {
+            priorityMoves.left = 0
+        }
+        if (myHead.x === boardWidth - 1) {
+            priorityMoves.right = 0
+        }
+        if (myHead.y === 0) {
+            priorityMoves.down = 0
+        }
+        if (myHead.y === boardHeight - 1) {
+            priorityMoves.up = 0
+        }
     }
 
     // Step 0: Don't let your Battlesnake move back on its own neck
@@ -102,13 +105,13 @@ function move(gameState: GameState): MoveResponse {
     allSnakes.forEach((snake) => {
         snake.body.forEach((coord, i) => {
             if (i === snake.body.length - 1) return // You can move onto people's tails
-            if (coord.x === myHead.x - 1 && coord.y === myHead.y) {
+            if (coord.x === (myHead.x - 1 + boardWidth) % boardWidth && coord.y === myHead.y) {
                 priorityMoves.left = 0
-            } else if (coord.x === myHead.x + 1 && coord.y === myHead.y) {
+            } else if (coord.x === (myHead.x + 1) % boardWidth && coord.y === myHead.y) {
                 priorityMoves.right = 0
-            } else if (coord.y === myHead.y - 1 && coord.x === myHead.x) {
+            } else if (coord.y === (myHead.y - 1 + boardHeight) % boardHeight && coord.x === myHead.x) {
                 priorityMoves.down = 0
-            } else if (coord.y === myHead.y + 1 && coord.x === myHead.x) {
+            } else if (coord.y === (myHead.y + 1) % boardHeight && coord.x === myHead.x) {
                 priorityMoves.up = 0
             }
         })
@@ -156,7 +159,8 @@ function move(gameState: GameState): MoveResponse {
     */
     gameState.board.snakes.forEach((snake) => {
         const snakeHead = snake.head
-        if (coordDistance(myHead, snakeHead) !== 2) return
+        let snakeDistance = grid.findDistance(snakeHead)
+        if (grid.findDistance(snakeHead) !== 2) return
         if (gameState.you.length > snake.length) { // Yummy snake
             if (snakeHead.y > myHead.y) {
                 priorityMoves.up += PRIORITIES.YUMMY_SNAKE

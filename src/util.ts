@@ -1,6 +1,7 @@
 import { GameState, Coord } from "./types"
 
 export function coordDistance(a: Coord, b: Coord) {
+    // BEWARE: This doesn't work on wrapped boards
     const dx = (b.x - a.x)
     const dy = (b.y - a.y)
     // Tile distance
@@ -8,6 +9,7 @@ export function coordDistance(a: Coord, b: Coord) {
 }
 
 export function isAdjacent(a: Coord, b: Coord): boolean {
+    // BEWARE: This doesn't work on wrapped boards
     return coordDistance(a, b) === 1
 }
 
