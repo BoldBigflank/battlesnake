@@ -150,7 +150,7 @@ function move(gameState: GameState): MoveResponse {
         }
     }
     if (chosenPath.length > 1) {
-        const direction = getDirection(myHead, chosenPath[1])
+        const direction = getDirection(myHead, chosenPath[1], gameState)
         if (direction) priorityMoves[direction] += PRIORITIES.TO_FOOD
     }
 
@@ -236,14 +236,20 @@ function move(gameState: GameState): MoveResponse {
 }
 
 // HELPER FUNCTIONS
-function getDirection(start: Coord, key: string): string | undefined {
+function getDirection(start: Coord, key: string, gameState: GameState): string | undefined {
     const [keyX, keyY] = key.split(',')
-    const x = parseInt(keyX)
-    const y = parseInt(keyY)
-    if (start.x === x && start.y - 1 === y) return 'down'
-    if (start.x === x && start.y + 1 === y) return 'up'
-    if (start.x - 1 === x && start.y === y) return 'left'
-    if (start.x + 1 === x && start.y === y) return 'right'
+    const { width, height } = gameState.board
+    const end: Coord = {x: parseInt(keyX), y: parseInt(keyY)}
+    if (start.x === end.x) {
+        // same row
+        if ((start.y + 1) % height === end.y) return 'up'
+        if ((start.y - 1 + height) % height === end.y) return 'down'
+    }
+    if (start.y === end.y) {
+        // same column
+        if ((start.x + 1) % width === end.x) return 'right'
+        if ((start.x - 1 + width) % width === end.x) return 'left'
+    }
 }
 
 function direction(a: Coord, b: Coord): string {
