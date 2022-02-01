@@ -130,7 +130,7 @@ function move(gameState: GameState): MoveResponse {
     gameState.board.food.forEach((food) => {
         try {
             const path = grid.findPath(food)
-            if (!chosenPath.length || chosenPath.length > path.length) {
+            if (!chosenPath.length || path.length < chosenPath.length) {
                 chosenPath = path
             }
         } catch (error) {
@@ -159,8 +159,7 @@ function move(gameState: GameState): MoveResponse {
     */
     gameState.board.snakes.forEach((snake) => {
         const snakeHead = snake.head
-        let snakeDistance = grid.findDistance(snakeHead)
-        if (grid.findDistance(snakeHead) !== 2) return
+        if (grid.findDistance(myHead, snakeHead) !== 2) return
         if (gameState.you.length > snake.length) { // Yummy snake
             if (snakeHead.y > myHead.y) {
                 priorityMoves.up += PRIORITIES.YUMMY_SNAKE

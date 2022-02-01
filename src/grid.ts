@@ -37,10 +37,10 @@ export default class Grid {
 
                 // Wrapped mode edges
                 if (this.game.ruleset.name === 'wrapped') {
-                    if (x === 0) edges[`${boardWidth-1},${y}`] = boardWidth + 10
-                    if (x === boardWidth - 1) edges[`${0},${y}`] = x + 10
-                    if (y === 0) edges[`${x},${boardHeight-1}`] = boardHeight + 10
-                    if (y === boardHeight - 1) edges[`${x},${0}`] = y + 10
+                    if (x === 0) edges[`${boardWidth-1},${y}`] = 10
+                    if (x === boardWidth - 1) edges[`${0},${y}`] = 10
+                    if (y === 0) edges[`${x},${boardHeight-1}`] = 10
+                    if (y === boardHeight - 1) edges[`${x},${0}`] = 10
                 }
                 graph[key] = edges
 
@@ -79,12 +79,12 @@ export default class Grid {
             if (
                 snake.id !== this.you.id
                 && snake.health === 1
-                && !this.board.food.some((food) => this.findDistance(food) === 1)
+                && !this.board.food.some((food) => this.findDistance(snake.head, food) === 1)
             ) {
                 return
             }
             snake.body.forEach((coord, i) => {
-                const distance = this.findDistance(coord)
+                const distance = this.findDistance(snake.head, coord)
                 if (distance >= (snake.length - i)) return // It's gonna be gone then
                 // There's a small chance that the snake might run out of health or
                 // Move out of bounds and be removed before our move resolves
@@ -130,8 +130,8 @@ export default class Grid {
         return dijkstra.find_path(this.graph, this.keyName(this.start), this.keyName(coord))
     }
 
-    findDistance(coord: Coord) {
-        return dijkstra.find_path(this.distanceGraph, this.keyName(this.start), this.keyName(coord)).length - 1
+    findDistance(start: Coord, coord: Coord) {
+        return dijkstra.find_path(this.distanceGraph, this.keyName(start), this.keyName(coord)).length - 1
     }
 }
 
