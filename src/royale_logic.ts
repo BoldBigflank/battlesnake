@@ -181,28 +181,39 @@ function move(gameState: GameState): MoveResponse {
         const snakeHead = snake.head
         const isWrapped = gameState.game.ruleset.name === 'wrapped'
         const { width, height } = gameState.board
+        const directionHeight = isWrapped ? height : 0
+        const directionWidth = isWrapped ? width : 0
 
         if (grid.findDistance(myHead, snakeHead) !== 2) return
+        if (DEBUG) console.log(`${snake.name} is ${snake.length >= myLength ? 'scary' : 'yummy'}`)
         if (gameState.you.length > snake.length) { // Yummy snake
-            if (snakeHead.y === up(myHead, 1, isWrapped ? height : 0).y) {
+            if (snakeHead.y === up(myHead, 1, directionHeight).y ||
+                snakeHead.y === up(myHead, 2, directionHeight).y) {
                 priorityMoves.up += PRIORITIES.YUMMY_SNAKE
-            } else if (snakeHead.y === down(myHead, 1, isWrapped ? height : 0).y) {
+            } else if (snakeHead.y === down(myHead, 1, directionHeight).y ||
+                snakeHead.y === down(myHead, 2, directionHeight).y) {
                 priorityMoves.down += PRIORITIES.YUMMY_SNAKE
             }
-            if (snakeHead.x === right(myHead, 1, isWrapped ? width : 0).x) {
+            if (snakeHead.x === right(myHead, 1, directionWidth).x ||
+                snakeHead.x === right(myHead, 2, directionWidth).x) {
                 priorityMoves.right += PRIORITIES.YUMMY_SNAKE
-            } else if (snakeHead.x === left(myHead, 1, isWrapped ? width : 0).x) {
+            } else if (snakeHead.x === left(myHead, 1, directionWidth).x ||
+                snakeHead.x === left(myHead, 2, directionWidth).x) {
                 priorityMoves.left += PRIORITIES.YUMMY_SNAKE
             }
         } else { // Scary snake
-            if (snakeHead.y === up(myHead, 1, isWrapped ? height : 0).y) {
+            if (snakeHead.y === up(myHead, 1, directionHeight).y ||
+                snakeHead.y === up(myHead, 2, directionHeight).y) {
                 priorityMoves.up += PRIORITIES.SCARY_SNAKE
-            } else if (snakeHead.y === down(myHead, 1, isWrapped ? height : 0).y) {
+            } else if (snakeHead.y === down(myHead, 1, directionHeight).y ||
+                snakeHead.y === down(myHead, 2, directionHeight).y) {
                 priorityMoves.down += PRIORITIES.SCARY_SNAKE
             }
-            if (snakeHead.x === right(myHead, 1, isWrapped ? width : 0).x) {
+            if (snakeHead.x === right(myHead, 1, directionWidth).x ||
+                snakeHead.x === right(myHead, 2, directionWidth).x) {
                 priorityMoves.right += PRIORITIES.SCARY_SNAKE
-            } else if (snakeHead.x === left(myHead, 1, isWrapped ? width : 0).x) {
+            } else if (snakeHead.x === left(myHead, 1, directionWidth).x ||
+                snakeHead.x === left(myHead, 2, directionWidth).x) {
                 priorityMoves.left += PRIORITIES.SCARY_SNAKE
             }
         }
