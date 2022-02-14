@@ -23,23 +23,27 @@ export function hasFood(gameState: GameState, coord: Coord) {
     })
 }
 
-export function up(coord: Coord, distance: number = 1): Coord {
+export function up(coord: Coord, distance: number = 1, height: number = 0): Coord {
     const result = { ...coord } 
     result.y = coord.y + distance
+    if (height) result.y = result.y % height
     return result
 }
-export function down(coord: Coord, distance: number = 1): Coord {
+export function down(coord: Coord, distance: number = 1, height: number = 0): Coord {
     const result = { ...coord } 
     result.y = coord.y - distance
+    if (height) result.y = (result.y + height) % height
     return result
 }
-export function right(coord: Coord, distance: number = 1): Coord {
+export function right(coord: Coord, distance: number = 1, width: number = 0): Coord {
     const result = { ...coord } 
     result.x = coord.x + distance
+    if (width) result.x = result.x % width
     return result
 }
-export function left(coord: Coord, distance: number = 1): Coord {
+export function left(coord: Coord, distance: number = 1, width: number = 0): Coord {
     const result = { ...coord } 
     result.x = coord.x - distance
+    if (width) result.x = (result.x + width) % width
     return result
 }

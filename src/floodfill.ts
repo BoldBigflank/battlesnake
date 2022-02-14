@@ -31,27 +31,31 @@ export default class FloodFill {
     }
 
     buildGrid(start: Coord): Directions {
-        this.start = start
+        const isWrapped = this.game.ruleset.name === 'wrapped'
+        const { width, height } = this.board
+
         return {
-            up: this.floodFill(up(start)),
-            right: this.floodFill(right(start)),
-            down: this.floodFill(down(start)),
-            left: this.floodFill(left(start))
+            up: this.floodFill(up(start, 1, isWrapped ? height : 0)),
+            right: this.floodFill(right(start, 1, isWrapped ? width : 0)),
+            down: this.floodFill(down(start, 1, isWrapped ? height : 0)),
+            left: this.floodFill(left(start, 1, isWrapped ? width : 0))
         }
     }
 
     floodFill(start: Coord): number {
         this.fillSquares = []
         this.queue = [start]
+        const isWrapped = this.game.ruleset.name === 'wrapped'
+        const { width, height } = this.board
 
         while (this.queue.length > 0) {
             var c = this.queue[0]
             if (this.isAvailable(c)) {
                 // TODO: Handle wrapped mode
-                this.queue.push(up(c))
-                this.queue.push(right(c))
-                this.queue.push(down(c))
-                this.queue.push(left(c))
+                this.queue.push(up(c, 1, isWrapped ? height : 0))
+                this.queue.push(right(c, 1, isWrapped ? width : 0))
+                this.queue.push(down(c, 1, isWrapped ? height : 0))
+                this.queue.push(left(c, 1, isWrapped ? width : 0))
                 this.fillSquares.push(c)
             }
 

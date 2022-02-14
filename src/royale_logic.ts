@@ -77,6 +77,7 @@ function move(gameState: GameState): MoveResponse {
     }
 
     const myHead = gameState.you.head
+    const myLength = gameState.you.length
 
     // TODO: Step 1 - Don't hit walls.
     // Use information in gameState to prevent your Battlesnake from moving beyond the boundaries of the board.
@@ -124,16 +125,16 @@ function move(gameState: GameState): MoveResponse {
     */
     const floodFill = new FloodFill(gameState)
     const fillSpace = floodFill.buildGrid(myHead)
-    if (fillSpace.up < 20) {
+    if (fillSpace.up < myLength * 1.5) {
         priorityMoves.up += PRIORITIES.TUNNEL
     }
-    if (fillSpace.right < 20) {
+    if (fillSpace.right < myLength * 1.5) {
         priorityMoves.right += PRIORITIES.TUNNEL
     }
-    if (fillSpace.down < 20) {
+    if (fillSpace.down < myLength * 1.5) {
         priorityMoves.down += PRIORITIES.TUNNEL
     }
-    if (fillSpace.left < 20) {
+    if (fillSpace.left < myLength * 1.5) {
         priorityMoves.left += PRIORITIES.TUNNEL
     }
     
