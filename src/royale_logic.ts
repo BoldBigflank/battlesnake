@@ -38,7 +38,7 @@ function info(): InfoResponse {
     const response: InfoResponse = {
         apiversion: "1",
         author: "boldbigflank",
-        color: "#ff00ff",
+        color: "#1778B5",
         head: "orca",
         tail: "round-bum"
     }
