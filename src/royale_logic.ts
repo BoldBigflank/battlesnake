@@ -5,6 +5,8 @@ import { up, down, left, right } from "./util"
 import { onGameEnd, onGameStart } from "./pixelring"
 import { Router, Request, Response } from "express"
 
+const DEBUG = false
+
 const PRIORITIES = {
     TO_FOOD: 3,
     SCARY_SNAKE: -5,
@@ -125,6 +127,7 @@ function move(gameState: GameState): MoveResponse {
     */
     const floodFill = new FloodFill(gameState)
     const fillSpace = floodFill.buildGrid(myHead)
+    if (DEBUG) console.log('fillSpace', fillSpace)
     if (fillSpace.up < myLength * 1.5) {
         priorityMoves.up += PRIORITIES.TUNNEL
     }
@@ -204,6 +207,7 @@ function move(gameState: GameState): MoveResponse {
     })
 
     // Take the highest priority move
+    if (DEBUG) console.log('priorityMoves', priorityMoves)
     const move = Object.keys(priorityMoves)
         .sort((moveA, moveB) => priorityMoves[moveB] - priorityMoves[moveA])[0]
 

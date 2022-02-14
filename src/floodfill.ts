@@ -72,10 +72,10 @@ export default class FloodFill {
         if (coord.y < 0 || coord.y >= this.board.height) {
             return false
         }
-        // Is there a snake there?
+        // Is there a snake there? Ignore tails
         for (let i = 0; i < this.board.snakes.length; i++) {
             let snake = this.board.snakes[i]
-            for (let j = 0; j < snake.length; j++) {
+            for (let j = 0; j < snake.length - 1; j++) {
                 if (coordEqual(coord, snake.body[j])) {
                     return false
                 }
