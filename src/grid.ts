@@ -131,6 +131,7 @@ export default class Grid {
     }
 
     findDistance(start: Coord, coord: Coord) {
+        console.log('findDistance', dijkstra.find_path(this.distanceGraph, this.keyName(start), this.keyName(coord)))
         return dijkstra.find_path(this.distanceGraph, this.keyName(start), this.keyName(coord)).length - 1
     }
 }
