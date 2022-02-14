@@ -9,7 +9,8 @@ const DEBUG = false
 
 const PRIORITIES = {
     TO_FOOD: 3,
-    SCARY_SNAKE: -5,
+    SCARY_SNAKE: -6,
+    EQUAL_SNAKE: -5,
     YUMMY_SNAKE: 5,
     HAZARD_SAUCE: -4,
     TUNNEL: -5
@@ -185,39 +186,23 @@ function move(gameState: GameState): MoveResponse {
         const directionWidth = isWrapped ? width : 0
 
         if (grid.findDistance(myHead, snakeHead) !== 2) return
-        if (DEBUG) console.log(`${snake.name} is ${snake.length >= myLength ? 'scary' : 'yummy'}`)
-        if (gameState.you.length > snake.length) { // Yummy snake
-            if (snakeHead.y === up(myHead, 1, directionHeight).y ||
-                snakeHead.y === up(myHead, 2, directionHeight).y) {
-                priorityMoves.up += PRIORITIES.YUMMY_SNAKE
-            } else if (snakeHead.y === down(myHead, 1, directionHeight).y ||
-                snakeHead.y === down(myHead, 2, directionHeight).y) {
-                priorityMoves.down += PRIORITIES.YUMMY_SNAKE
-            }
-            if (snakeHead.x === right(myHead, 1, directionWidth).x ||
-                snakeHead.x === right(myHead, 2, directionWidth).x) {
-                priorityMoves.right += PRIORITIES.YUMMY_SNAKE
-            } else if (snakeHead.x === left(myHead, 1, directionWidth).x ||
-                snakeHead.x === left(myHead, 2, directionWidth).x) {
-                priorityMoves.left += PRIORITIES.YUMMY_SNAKE
-            }
-        } else { // Scary snake
-            if (snakeHead.y === up(myHead, 1, directionHeight).y ||
-                snakeHead.y === up(myHead, 2, directionHeight).y) {
-                priorityMoves.up += PRIORITIES.SCARY_SNAKE
-            } else if (snakeHead.y === down(myHead, 1, directionHeight).y ||
-                snakeHead.y === down(myHead, 2, directionHeight).y) {
-                priorityMoves.down += PRIORITIES.SCARY_SNAKE
-            }
-            if (snakeHead.x === right(myHead, 1, directionWidth).x ||
-                snakeHead.x === right(myHead, 2, directionWidth).x) {
-                priorityMoves.right += PRIORITIES.SCARY_SNAKE
-            } else if (snakeHead.x === left(myHead, 1, directionWidth).x ||
-                snakeHead.x === left(myHead, 2, directionWidth).x) {
-                priorityMoves.left += PRIORITIES.SCARY_SNAKE
-            }
+        const snakePriority =
+            (snake.length > myLength) ? PRIORITIES.SCARY_SNAKE :
+            (snake.length < myLength) ? PRIORITIES.YUMMY_SNAKE : PRIORITIES.EQUAL_SNAKE
+        if (snakeHead.y === up(myHead, 1, directionHeight).y ||
+            snakeHead.y === up(myHead, 2, directionHeight).y) {
+            priorityMoves.up += snakePriority
+        } else if (snakeHead.y === down(myHead, 1, directionHeight).y ||
+            snakeHead.y === down(myHead, 2, directionHeight).y) {
+            priorityMoves.down += snakePriority
         }
-
+        if (snakeHead.x === right(myHead, 1, directionWidth).x ||
+            snakeHead.x === right(myHead, 2, directionWidth).x) {
+            priorityMoves.right += snakePriority
+        } else if (snakeHead.x === left(myHead, 1, directionWidth).x ||
+            snakeHead.x === left(myHead, 2, directionWidth).x) {
+            priorityMoves.left += snakePriority
+        }
     })
 
     // Take the highest priority move
