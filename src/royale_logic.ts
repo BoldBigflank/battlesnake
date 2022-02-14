@@ -1,5 +1,6 @@
 import { InfoResponse, GameState, MoveResponse, Coord } from "./types"
 import Grid from './grid'
+import FloodFill from "./floodfill"
 import { up, down, left, right } from "./util"
 import { onGameEnd, onGameStart } from "./pixelring"
 import { Router, Request, Response } from "express"
@@ -8,7 +9,8 @@ const PRIORITIES = {
     TO_FOOD: 3,
     SCARY_SNAKE: -5,
     YUMMY_SNAKE: 5,
-    HAZARD_SAUCE: -4
+    HAZARD_SAUCE: -4,
+    TUNNEL: -5
 }
 
 export function routes(router: Router) {
@@ -36,7 +38,7 @@ function info(): InfoResponse {
     const response: InfoResponse = {
         apiversion: "1",
         author: "boldbigflank",
-        color: "#1778B5",
+        color: "#ff00ff",
         head: "orca",
         tail: "round-bum"
     }
@@ -117,10 +119,24 @@ function move(gameState: GameState): MoveResponse {
         })
     })
 
-    // TODO: Step 4 - Find food.
-    // TODO: Step 5 - Select a move to make based on strategy, rather than random.
-    // Use information in gameState to seek out and find food.
-
+    /*
+        Deprioritize dead ends
+    */
+    const floodFill = new FloodFill(gameState)
+    const fillSpace = floodFill.buildGrid(myHead)
+    if (fillSpace.up < 20) {
+        priorityMoves.up += PRIORITIES.TUNNEL
+    }
+    if (fillSpace.right < 20) {
+        priorityMoves.right += PRIORITIES.TUNNEL
+    }
+    if (fillSpace.down < 20) {
+        priorityMoves.down += PRIORITIES.TUNNEL
+    }
+    if (fillSpace.left < 20) {
+        priorityMoves.left += PRIORITIES.TUNNEL
+    }
+    
     /*
         Prioritize the direction that goes toward the closest food
     */

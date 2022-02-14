@@ -8,6 +8,10 @@ export function coordDistance(a: Coord, b: Coord) {
     return Math.abs(dx) + Math.abs(dy)
 }
 
+export function coordEqual(a: Coord, b: Coord) {
+    return a.x === b.x && a.y === b.y
+}
+
 export function isAdjacent(a: Coord, b: Coord): boolean {
     // BEWARE: This doesn't work on wrapped boards
     return coordDistance(a, b) === 1
@@ -20,26 +24,22 @@ export function hasFood(gameState: GameState, coord: Coord) {
 }
 
 export function up(coord: Coord, distance: number = 1): Coord {
-    return {
-        ...coord,
-        y: coord.y += distance
-    }
+    const result = { ...coord } 
+    result.y = coord.y + distance
+    return result
 }
 export function down(coord: Coord, distance: number = 1): Coord {
-    return {
-        ...coord,
-        y: coord.y -= distance
-    }
+    const result = { ...coord } 
+    result.y = coord.y - distance
+    return result
 }
 export function right(coord: Coord, distance: number = 1): Coord {
-    return {
-        ...coord,
-        x: coord.x += distance
-    }
+    const result = { ...coord } 
+    result.x = coord.x + distance
+    return result
 }
 export function left(coord: Coord, distance: number = 1): Coord {
-    return {
-        ...coord,
-        x: coord.x -= distance
-    }
+    const result = { ...coord } 
+    result.x = coord.x - distance
+    return result
 }
