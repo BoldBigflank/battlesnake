@@ -27,8 +27,10 @@ export async function onGameStart(gameState: GameState) {
         console.error(gameData.error)
         return
     }
+
+    const d = new Date()
     console.log(
-        chalk.green('Started', chalk.yellow(`${gameState.game.ruleset.name}`), 'game'),
+        chalk.green(d, '- Started', chalk.yellow(`${gameState.game.ruleset.name}`), 'game'),
         chalk.green('from', chalk.yellow(`${gameState.game.source}`))
     )
     console.log(chalk.blue(`https://play.battlesnake.com/g/${game.id}/`))
