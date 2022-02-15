@@ -84,8 +84,8 @@ export default class Grid {
                 return
             }
             snake.body.forEach((coord, i) => {
-                const distance = this.findDistance(snake.head, coord)
-                if (distance > (snake.length - i)) return // It's gonna be gone then
+                const distance = this.findDistance(this.you.head, coord)
+                if (distance >= (snake.length - i)) return // It's gonna be gone then
                 // There's a small chance that the snake might run out of health or
                 // Move out of bounds and be removed before our move resolves
                 // So it's better to move into another snake than into a wall.
@@ -131,7 +131,11 @@ export default class Grid {
     }
 
     findDistance(start: Coord, coord: Coord) {
-        return dijkstra.find_path(this.distanceGraph, this.keyName(start), this.keyName(coord)).length - 1
+        return dijkstra.find_path(
+            this.distanceGraph,
+            this.keyName(start), 
+            this.keyName(coord)
+        ).length - 1
     }
 }
 
