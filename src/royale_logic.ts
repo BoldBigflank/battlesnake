@@ -1,6 +1,7 @@
 import { InfoResponse, GameState, MoveResponse, Coord, Battlesnake } from "./types"
 import Grid from './grid'
 import FloodFill from "./floodfill"
+import PriorityList from "./priorityList"
 import { up, down, left, right, coordEqual } from "./util"
 import { onGameEnd, onGameStart } from "./pixelring"
 import { Router, Request, Response } from "express"
@@ -73,12 +74,7 @@ function end(gameState: GameState): void {
 }
 
 function move(gameState: GameState): MoveResponse {
-    let priorityMoves: { [key: string]: number } = {
-        down: 100,
-        left: 100,
-        up: 100,
-        right: 100
-    }
+    const priorityMoves = new PriorityList()
 
     const myHead = gameState.you.head
     const myLength = gameState.you.length
@@ -89,6 +85,7 @@ function move(gameState: GameState): MoveResponse {
     const boardWidth = gameState.board.width
     const boardHeight = gameState.board.height
 
+    if (DEBUG) console.log('Checking walls')
     if (gameState.game.ruleset.name !== 'wrapped') {
         if (myHead.x === 0) {
             priorityMoves.left = 0
@@ -108,6 +105,7 @@ function move(gameState: GameState): MoveResponse {
     // Step 2 - Don't hit yourself.
     // Step 3 - Don't collide with others.
     // Use information in gameState to prevent your Battlesnake from colliding with itself.
+    if (DEBUG) console.log('Checking other snakes')
     const allSnakes = gameState.board.snakes
     allSnakes.forEach((snake) => {
         snake.body.forEach((coord, i) => {
@@ -129,7 +127,7 @@ function move(gameState: GameState): MoveResponse {
     */
     const floodFill = new FloodFill(gameState)
     const fillSpace = floodFill.buildGrid(myHead)
-    if (DEBUG) console.log('fillSpace', fillSpace)
+    if (DEBUG) console.log('Checking for tunnels', fillSpace)
     if (fillSpace.up > 0 && fillSpace.up < myLength * 1.5) {
         priorityMoves.up += PRIORITIES.TUNNEL
     }
@@ -139,7 +137,7 @@ function move(gameState: GameState): MoveResponse {
     if (fillSpace.down > 0 && fillSpace.down < myLength * 1.5) {
         priorityMoves.down += PRIORITIES.TUNNEL
     }
-    if (fillSpace.down > 0 && fillSpace.left < myLength * 1.5) {
+    if (fillSpace.left > 0 && fillSpace.left < myLength * 1.5) {
         priorityMoves.left += PRIORITIES.TUNNEL
     }
     
@@ -147,6 +145,7 @@ function move(gameState: GameState): MoveResponse {
         Prioritize the direction that goes toward the closest food
     */
     // New way, build and use a grid
+    if (DEBUG) console.log('Checking path to food')
     const grid = new Grid(gameState, myHead)
     let chosenPath: string[] = []
     gameState.board.food.forEach((food) => {
@@ -173,12 +172,16 @@ function move(gameState: GameState): MoveResponse {
     }
     if (chosenPath.length > 1) {
         const direction = getDirection(myHead, chosenPath[1], gameState)
-        if (direction) priorityMoves[direction] += PRIORITIES.TO_FOOD
+        if (direction === 'up') priorityMoves.up += PRIORITIES.TO_FOOD
+        if (direction === 'down') priorityMoves.down += PRIORITIES.TO_FOOD
+        if (direction === 'left') priorityMoves.left += PRIORITIES.TO_FOOD
+        if (direction === 'right') priorityMoves.right += PRIORITIES.TO_FOOD
     }
 
     /*
         Deprioritize spaces that might be taken by bigger snakes
     */
+    if (DEBUG) console.log('Checking snake positions')
     gameState.board.snakes.forEach((snake) => {
         const snakeHead = snake.head
         const isWrapped = gameState.game.ruleset.name === 'wrapped'
@@ -224,8 +227,7 @@ function move(gameState: GameState): MoveResponse {
 
     // Take the highest priority move
     if (DEBUG) console.log('priorityMoves', priorityMoves)
-    const move = Object.keys(priorityMoves)
-        .sort((moveA, moveB) => priorityMoves[moveB] - priorityMoves[moveA])[0]
+    const move = priorityMoves.getDirection()
 
     // Finally, choose a move from the available safe moves.
     const response: MoveResponse = {
