@@ -9,11 +9,10 @@ import { Router, Request, Response } from "express"
 const DEBUG = process.env.DEBUG
 
 const PRIORITIES = {
-    TO_FOOD: 3,
-    SCARY_SNAKE: -5,
-    EQUAL_SNAKE: -6,
-    YUMMY_SNAKE: 5, // - (enemy's valid moves (1-3))
-    HAZARD_SAUCE: -4,
+    TO_FOOD: 4,
+    SCARY_SNAKE: -5, // -7, -6 or -5 based on enemy move options
+    EQUAL_SNAKE: -6, // -4, -5, or -6 based on enemy move options
+    YUMMY_SNAKE: 5, // 5, 3, or 1 based on the enemy move options
     TUNNEL: -5
 }
 
@@ -198,10 +197,10 @@ function move(gameState: GameState): MoveResponse {
             // snake with 1 move -> -7
         } else if (snake.length < myLength) {
             snakePriority = PRIORITIES.YUMMY_SNAKE // 5
-            snakePriority -= validMoves(gameState, snake)
-            // snake with 1 move -> 5 - 1 = 4
+            snakePriority -= 2 * (validMoves(gameState, snake) - 1)
+            // snake with 1 move -> 5 - 1 = 5
             // snake with 2 moves -> 5 - 2 = 3
-            // snake with 3 moves -> 5 - 3 = 2
+            // snake with 3 moves -> 5 - 3 = 1
         } else {
             snakePriority = PRIORITIES.EQUAL_SNAKE // -6
             snakePriority += validMoves(gameState, snake)
