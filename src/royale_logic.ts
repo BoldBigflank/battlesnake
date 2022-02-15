@@ -9,10 +9,10 @@ import { Router, Request, Response } from "express"
 const DEBUG = process.env.DEBUG
 
 const PRIORITIES = {
-    TO_FOOD: 4,
-    SCARY_SNAKE: -5, // -7, -6 or -5 based on enemy move options
-    EQUAL_SNAKE: -6, // -4, -5, or -6 based on enemy move options
-    YUMMY_SNAKE: 5, // 5, 3, or 1 based on the enemy move options
+    TO_FOOD: 4, // Steal from an equal snake, ignore for a guaranteed yummy snake
+    SCARY_SNAKE: -5, // -7, -6 or -5 if enemy has 1, 2, or 3 move options
+    EQUAL_SNAKE: -5, // -5, -4, or -3 if enemy has 1, 2, or 3 move options
+    YUMMY_SNAKE: 5, // 5, 3, or 1 if enemy has 1, 2, or 3 move options
     TUNNEL: -5
 }
 
