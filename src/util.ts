@@ -1,11 +1,21 @@
 import { GameState, Coord } from "./types"
 
-export function coordDistance(a: Coord, b: Coord) {
-    // BEWARE: This doesn't work on wrapped boards
-    const dx = (b.x - a.x)
-    const dy = (b.y - a.y)
+export function coordDistance(a: Coord, b: Coord, width: number = 0, height: number = 0) {
+    let dx = Math.abs(b.x - a.x)
+    let dy = Math.abs(b.y - a.y)
+
+    // Wrapped boards
+    if (width > 0 && height > 0) {
+        if (dx > width / 2) {
+            dx = width - dx
+        }
+        if (dy > height / 2) {
+            dy = height - dy
+        }
+    }
+
     // Tile distance
-    return Math.abs(dx) + Math.abs(dy)
+    return dx + dy
 }
 
 export function coordEqual(a: Coord, b: Coord) {

@@ -47,6 +47,7 @@ export default class FloodFill {
     }
 
     floodFill(start: Coord): number {
+        this.start = start
         this.fillSquares = []
         this.snakeSquares = []
         this.queue = [start]
@@ -93,9 +94,13 @@ export default class FloodFill {
             return false
         }
         // Is there a snake there? Ignore tails
+        const distance = coordDistance(coord, this.start, this.board.width, this.board.height)
         for (let i = 0; i < this.board.snakes.length; i++) {
             let snake = this.board.snakes[i]
-            for (let j = 0; j < snake.length - 1; j++) {
+            for (let j = 0; j < snake.length; j++) {
+                if (distance >= (snake.length - j)) {
+                    continue
+                }
                 if (coordEqual(coord, snake.body[j])) {
                     return false
                 }
