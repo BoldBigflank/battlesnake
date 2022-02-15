@@ -1,7 +1,7 @@
-import { InfoResponse, GameState, MoveResponse, Coord } from "./types"
+import { InfoResponse, GameState, MoveResponse, Coord, Battlesnake } from "./types"
 import Grid from './grid'
 import FloodFill from "./floodfill"
-import { up, down, left, right } from "./util"
+import { up, down, left, right, coordEqual } from "./util"
 import { onGameEnd, onGameStart } from "./pixelring"
 import { Router, Request, Response } from "express"
 
@@ -9,9 +9,9 @@ const DEBUG = process.env.DEBUG
 
 const PRIORITIES = {
     TO_FOOD: 3,
-    SCARY_SNAKE: -6,
-    EQUAL_SNAKE: -5,
-    YUMMY_SNAKE: 5,
+    SCARY_SNAKE: -5,
+    EQUAL_SNAKE: -6,
+    YUMMY_SNAKE: 5, // - (enemy's valid moves (1-3))
     HAZARD_SAUCE: -4,
     TUNNEL: -5
 }
@@ -187,9 +187,25 @@ function move(gameState: GameState): MoveResponse {
         const directionWidth = isWrapped ? width : 0
 
         if (grid.findDistance(myHead, snakeHead) !== 2) return
-        const snakePriority =
-            (snake.length > myLength) ? PRIORITIES.SCARY_SNAKE :
-            (snake.length < myLength) ? PRIORITIES.YUMMY_SNAKE : PRIORITIES.EQUAL_SNAKE
+        let snakePriority = 5
+        if (snake.length > myLength) {
+            snakePriority = PRIORITIES.SCARY_SNAKE // -5
+            snakePriority -= 3 - validMoves(gameState, snake)
+            // snake with 3 moves -> -5
+            // snake with 1 move -> -7
+        } else if (snake.length < myLength) {
+            snakePriority = PRIORITIES.YUMMY_SNAKE // 5
+            snakePriority -= validMoves(gameState, snake)
+            // snake with 1 move -> 5 - 1 = 4
+            // snake with 2 moves -> 5 - 2 = 3
+            // snake with 3 moves -> 5 - 3 = 2
+        } else {
+            snakePriority = PRIORITIES.EQUAL_SNAKE // -6
+            snakePriority += validMoves(gameState, snake)
+            // snake with 3 moves -> -4
+            // snake with 1 move -> -6
+        }
+        
         if (snakeHead.y === up(myHead, 1, directionHeight).y ||
             snakeHead.y === up(myHead, 2, directionHeight).y) {
             priorityMoves.up += snakePriority
@@ -281,4 +297,27 @@ function direction(a: Coord, b: Coord): string {
     } else {
         return (dy > 0) ? 'up' : 'down'
     }
+}
+
+function validMoves(gameState: GameState, snake: Battlesnake): number {
+    const snakeHead = snake.head
+    const isWrapped = gameState.game.ruleset.name === 'wrapped'
+    const { width, height } = gameState.board
+    const directionHeight = isWrapped ? height : 0
+    const directionWidth = isWrapped ? width : 0
+
+    let result = [
+        up(snake.head, 1, directionHeight),
+        down(snakeHead, 1, directionHeight),
+        left(snakeHead, 1, directionWidth),
+        right(snakeHead, 1, directionWidth)
+    ]
+
+    gameState.board.snakes.forEach((snake) => {
+        snake.body.forEach((coord) => {
+            result = result.filter((c) => !coordEqual(coord, c))
+        })
+    })
+
+    return result.length
 }
