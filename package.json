@@ -7,7 +7,7 @@
     "prestart": "npm run build",
     "start": "node build/index.js",
     "test": "jest --silent",
-    "dev": "npx nodemon -e ts  --exec \"npm run start || exit 1\""
+    "dev": "DEBUG=true && npx nodemon -e ts  --exec \"npm run start || exit 1\""
   },
   "repository": {
     "type": "git",

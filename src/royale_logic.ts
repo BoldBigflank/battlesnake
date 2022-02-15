@@ -5,7 +5,7 @@ import { up, down, left, right } from "./util"
 import { onGameEnd, onGameStart } from "./pixelring"
 import { Router, Request, Response } from "express"
 
-const DEBUG = false
+const DEBUG = process.env.DEBUG
 
 const PRIORITIES = {
     TO_FOOD: 3,
@@ -44,7 +44,7 @@ function info(): InfoResponse {
         color: "#1778B5",
         head: "orca",
         tail: "round-bum",
-        version: 'v1.0.0'
+        version: '1.0.0'
     }
     return response
 }

@@ -85,7 +85,7 @@ export default class Grid {
             }
             snake.body.forEach((coord, i) => {
                 const distance = this.findDistance(snake.head, coord)
-                if (distance >= (snake.length - i)) return // It's gonna be gone then
+                if (distance > (snake.length - i)) return // It's gonna be gone then
                 // There's a small chance that the snake might run out of health or
                 // Move out of bounds and be removed before our move resolves
                 // So it's better to move into another snake than into a wall.

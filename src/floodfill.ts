@@ -1,6 +1,6 @@
 /// <reference path='./dijkstra.d.ts' />
 import { InfoResponse, GameState, Game, Board, Battlesnake, MoveResponse, Coord, Graph, Edges } from "./types"
-import { coordEqual, up, down, left, right } from "./util"
+import { coordEqual, up, down, left, right, coordDistance } from "./util"
 import * as dijkstra from 'dijkstrajs'
 
 type Directions = {
@@ -18,6 +18,7 @@ export default class FloodFill {
     you: Battlesnake
 
     fillSquares: Coord[]
+    snakeSquares: Coord[]
     queue: Coord[]
 
     constructor(gameState: GameState) {
@@ -27,35 +28,54 @@ export default class FloodFill {
         this.you = gameState.you
         this.start = this.you.head
         this.fillSquares = []
+        this.snakeSquares = []
         this.queue = []
     }
 
     buildGrid(start: Coord): Directions {
         const isWrapped = this.game.ruleset.name === 'wrapped'
         const { width, height } = this.board
+        const directionWidth = isWrapped ? width : 0
+        const directionHeight = isWrapped ? height : 0
 
         return {
-            up: this.floodFill(up(start, 1, isWrapped ? height : 0)),
-            right: this.floodFill(right(start, 1, isWrapped ? width : 0)),
-            down: this.floodFill(down(start, 1, isWrapped ? height : 0)),
-            left: this.floodFill(left(start, 1, isWrapped ? width : 0))
+            up: this.floodFill(up(start, 1, directionHeight)),
+            right: this.floodFill(right(start, 1, directionWidth)),
+            down: this.floodFill(down(start, 1, directionHeight)),
+            left: this.floodFill(left(start, 1, directionWidth))
         }
     }
 
     floodFill(start: Coord): number {
         this.fillSquares = []
+        this.snakeSquares = []
         this.queue = [start]
         const isWrapped = this.game.ruleset.name === 'wrapped'
         const { width, height } = this.board
+        const directionWidth = isWrapped ? width : 0
+        const directionHeight = isWrapped ? height : 0
+        // Start by filling the area around snakes based on the distance of the snake head
+        this.board.snakes
+        .filter((snake) => snake.id !== this.you.id)
+        .forEach((snake) => {
+            this.snakeSquares.push(up(snake.head, 1, directionHeight))
+            this.snakeSquares.push(down(snake.head, 1, directionHeight))
+            this.snakeSquares.push(left(snake.head, 1, directionWidth))
+            this.snakeSquares.push(right(snake.head, 1, directionWidth))
+        })
+        // Remove self if I added it
+        this.snakeSquares = this.snakeSquares.filter((c) => {
+            return !coordEqual(c, start)
+        })
 
         while (this.queue.length > 0) {
             var c = this.queue[0]
             if (this.isAvailable(c)) {
                 // TODO: Handle wrapped mode
-                this.queue.push(up(c, 1, isWrapped ? height : 0))
-                this.queue.push(right(c, 1, isWrapped ? width : 0))
-                this.queue.push(down(c, 1, isWrapped ? height : 0))
-                this.queue.push(left(c, 1, isWrapped ? width : 0))
+                this.queue.push(up(c, 1, directionHeight))
+                this.queue.push(right(c, 1, directionWidth))
+                this.queue.push(down(c, 1, directionHeight))
+                this.queue.push(left(c, 1, directionWidth))
                 this.fillSquares.push(c)
             }
 
@@ -84,6 +104,12 @@ export default class FloodFill {
         // Is it marked?
         for (let i = 0; i < this.fillSquares.length; i++) {
             if (coordEqual(coord, this.fillSquares[i])) {
+                return false
+            }
+        }
+        // Is it near a snake
+        for (let i = 0; i < this.snakeSquares.length; i++) {
+            if (coordEqual(coord, this.snakeSquares[i])) {
                 return false
             }
         }
