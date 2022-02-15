@@ -94,7 +94,7 @@ export default class FloodFill {
             return false
         }
         // Is there a snake there? Ignore tails
-        const distance = coordDistance(coord, this.start, this.board.width, this.board.height)
+        const distance = coordDistance(coord, this.you.head, this.board.width, this.board.height)
         for (let i = 0; i < this.board.snakes.length; i++) {
             let snake = this.board.snakes[i]
             for (let j = 0; j < snake.length; j++) {
