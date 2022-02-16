@@ -43,7 +43,7 @@ function info(): InfoResponse {
         author: "boldbigflank",
         color: "#1778B5",
         head: "orca",
-        tail: "round-bum",
+        tail: "shiny",
         version: '1.0.0'
     }
     return response
