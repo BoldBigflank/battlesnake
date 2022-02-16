@@ -131,7 +131,6 @@ export default class Grid {
         const cost = this.getHealthCost(path)
         // console.log('short path', path, cost, myHealth)
         if (cost < myHealth) {
-            console.log('short path is good')
             chosenPath = path
         }
 
