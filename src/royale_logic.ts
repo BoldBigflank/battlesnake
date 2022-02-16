@@ -11,7 +11,7 @@ const DEBUG = process.env.DEBUG
 const PRIORITIES = {
     TO_FOOD: 4, // Steal from an equal snake, ignore for a guaranteed yummy snake
     SCARY_SNAKE: -5, // -7, -6 or -5 if enemy has 1, 2, or 3 move options
-    EQUAL_SNAKE: -5, // -5, -4, or -3 if enemy has 1, 2, or 3 move options
+    EQUAL_SNAKE: -6, // -6, -5, or -4 if enemy has 1, 2, or 3 move options
     YUMMY_SNAKE: 5, // 5, 3, or 1 if enemy has 1, 2, or 3 move options
     TUNNEL: -5
 }
@@ -84,7 +84,7 @@ function move(gameState: GameState): MoveResponse {
     const boardWidth = gameState.board.width
     const boardHeight = gameState.board.height
 
-    if (DEBUG) console.log('Checking walls')
+    if (DEBUG) console.log('* Checking walls')
     if (gameState.game.ruleset.name !== 'wrapped') {
         if (myHead.x === 0) {
             priorityMoves.left = 0
@@ -104,7 +104,7 @@ function move(gameState: GameState): MoveResponse {
     // Step 2 - Don't hit yourself.
     // Step 3 - Don't collide with others.
     // Use information in gameState to prevent your Battlesnake from colliding with itself.
-    if (DEBUG) console.log('Checking other snakes')
+    if (DEBUG) console.log('* Checking other snakes')
     const allSnakes = gameState.board.snakes
     allSnakes.forEach((snake) => {
         snake.body.forEach((coord, i) => {
@@ -126,7 +126,7 @@ function move(gameState: GameState): MoveResponse {
     */
     const floodFill = new FloodFill(gameState)
     const fillSpace = floodFill.buildGrid(myHead)
-    if (DEBUG) console.log('Checking for tunnels', fillSpace)
+    if (DEBUG) console.log('* Checking for tunnels', fillSpace)
     if (fillSpace.up > 0 && fillSpace.up < myLength * 1.5) {
         priorityMoves.up += PRIORITIES.TUNNEL
     }
@@ -144,23 +144,25 @@ function move(gameState: GameState): MoveResponse {
         Prioritize the direction that goes toward the closest food
     */
     // New way, build and use a grid
-    if (DEBUG) console.log('Checking path to food')
+    if (DEBUG) console.log('* Checking path to food')
     const grid = new Grid(gameState, myHead)
     let chosenPath: string[] = []
     gameState.board.food.forEach((food) => {
         try {
-            const path = grid.findPath(food)
-            if (!chosenPath.length || path.length < chosenPath.length) {
+            const path = grid.findBestPath(food)
+            if (!path.length) return
+            if (!chosenPath.length || path.length < chosenPath.length ) {
                 chosenPath = path
             }
         } catch (error) {
             // console.log(`${gameState.game.id} ${gameState.you.id} no path to food`)
         }
     })
+    if (DEBUG) console.log(chosenPath.length === 0 ? '* No good path found' : `* Found ${chosenPath.length - 1} step path`)
     // Move to my own tail otherwise
     if (!chosenPath.length) {
         try {
-            const path = grid.findPath(gameState.you.body[gameState.you.length-1])
+            const path = grid.findBestPath(gameState.you.body[gameState.you.length-1])
             if (path.length > 1) { // Gotta have space
                 // TODO: Make sure we don't hit our tail right after eating
                 chosenPath = path
@@ -170,6 +172,7 @@ function move(gameState: GameState): MoveResponse {
         }
     }
     if (chosenPath.length > 1) {
+        grid.getHealthCost(chosenPath)
         const direction = getDirection(myHead, chosenPath[1], gameState)
         if (direction === 'up') priorityMoves.up += PRIORITIES.TO_FOOD
         if (direction === 'down') priorityMoves.down += PRIORITIES.TO_FOOD
@@ -180,7 +183,7 @@ function move(gameState: GameState): MoveResponse {
     /*
         Deprioritize spaces that might be taken by bigger snakes
     */
-    if (DEBUG) console.log('Checking snake positions')
+    if (DEBUG) console.log('* Checking snake positions')
     gameState.board.snakes.forEach((snake) => {
         const snakeHead = snake.head
         const isWrapped = gameState.game.ruleset.name === 'wrapped'
@@ -225,7 +228,7 @@ function move(gameState: GameState): MoveResponse {
     })
 
     // Take the highest priority move
-    if (DEBUG) console.log('priorityMoves', priorityMoves)
+    if (DEBUG) console.log('>>', priorityMoves)
     const move = priorityMoves.getDirection()
 
     // Finally, choose a move from the available safe moves.

@@ -18,7 +18,7 @@ export default class PriorityList {
     }
 
     set up(value) {
-        if (DEBUG) console.log(`set up ${this.priorityMoves.up} -> ${value}`)
+        if (DEBUG) console.log(`>> set up ${this.priorityMoves.up} -> ${value}`)
         this.priorityMoves.up = value
     }
 
@@ -27,7 +27,7 @@ export default class PriorityList {
     }
 
     set down(value) {
-        if (DEBUG) console.log(`set down ${this.priorityMoves.down} -> ${value}`)
+        if (DEBUG) console.log(`>> set down ${this.priorityMoves.down} -> ${value}`)
         this.priorityMoves.down = value
     }
 
@@ -36,7 +36,7 @@ export default class PriorityList {
     }
 
     set left(value) {
-        if (DEBUG) console.log(`set left ${this.priorityMoves.left} -> ${value}`)
+        if (DEBUG) console.log(`>> set left ${this.priorityMoves.left} -> ${value}`)
         this.priorityMoves.left = value
     }
 
@@ -45,7 +45,7 @@ export default class PriorityList {
     }
 
     set right(value) {
-        if (DEBUG) console.log(`set right ${this.priorityMoves.right} -> ${value}`)
+        if (DEBUG) console.log(`>> set right ${this.priorityMoves.right} -> ${value}`)
         this.priorityMoves.right = value
     }
 
