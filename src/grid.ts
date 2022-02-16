@@ -129,10 +129,11 @@ export default class Grid {
         // If we can afford to go the fewest steps, do it
         const path = this.findShortestPath(coord)
         const cost = this.getHealthCost(path)
+        // console.log('short path', path, cost, myHealth)
         if (cost < myHealth) {
+            console.log('short path is good')
             chosenPath = path
         }
-        // console.log('short path', path, cost)
 
         // If there's a healthy option, do it
         const healthyPath = this.findHealthiestPath(coord)
@@ -140,7 +141,7 @@ export default class Grid {
         // console.log('healthiest path', healthyPath, healthyCost, myHealth)
         if (healthyCost < myHealth) {
             if (!chosenPath.length || path.length < chosenPath.length) {
-                chosenPath = path
+                chosenPath = healthyPath
             }
         }
         return chosenPath
