@@ -6,6 +6,7 @@ export default class Grid {
     game: Game
     graph: Graph
     distanceGraph: Graph
+    normGraph: Graph
     board: Board
     start: Coord
     you: Battlesnake
@@ -14,6 +15,7 @@ export default class Grid {
         this.game = gameState.game
         this.graph = {}
         this.distanceGraph = {}
+        this.normGraph = {}
         this.board = gameState.board
         this.you = gameState.you
         this.start = start
@@ -23,6 +25,7 @@ export default class Grid {
     buildGrid(): void {
         this.graph = {}
         this.distanceGraph = {}
+        this.normGraph = {}
         const graph = this.graph
         const boardWidth = this.board.width
         const boardHeight = this.board.height
@@ -45,8 +48,8 @@ export default class Grid {
                 graph[key] = edges
 
                 // Distance graph stuff
-                const distanceEdges: Edges = { ...edges }
-                this.distanceGraph[key] = distanceEdges
+                this.distanceGraph[key] = { ...edges }
+                this.normGraph[key] = { ...edges }
             }
         }
         
@@ -74,6 +77,7 @@ export default class Grid {
                 return
             }
             snake.body.forEach((coord, i) => {
+                this.setAllEdges(this.normGraph, coord, 1000000)
                 const distance = this.findDistance(this.you.head, coord)
                 if (distance >= (snake.length - i)) return // It's gonna be gone then
                 // There's a small chance that the snake might run out of health or
@@ -123,32 +127,46 @@ export default class Grid {
         return dijkstra.find_path(this.distanceGraph, this.keyName(this.start), this.keyName(coord))
     }
 
-    findBestPath(coord: Coord): string[] {
+    findBestPath(coord: Coord, competetive: boolean = false): string[] {
         let chosenPath: string[] = []
         const myHealth = this.you.health
-        // If we can afford to go the fewest steps, do it
-        const path = this.findShortestPath(coord)
-        const cost = this.getHealthCost(path)
-        // console.log('short path', path, cost, myHealth)
-        if (cost < myHealth) {
-            chosenPath = path
-        }
-
-        // If there's a healthy option, do it
+        
+        // Preserve your health - default
         const healthyPath = this.findHealthiestPath(coord)
         const healthyCost = this.getHealthCost(healthyPath)
-        // console.log('healthiest path', healthyPath, healthyCost, myHealth)
-        if (healthyCost < myHealth) {
-            if (!chosenPath.length || path.length < chosenPath.length) {
-                chosenPath = healthyPath
+        if (healthyCost < myHealth) chosenPath = healthyPath
+        // Dive into the sauce!
+        const shortPath = this.findShortestPath(coord)
+        const shortCost = this.getHealthCost(shortPath)
+        
+        // How fast do we need to get there?
+        if (competetive) {
+            // Only do the short path if it'll get us there before everyone else
+            const shortDistance = shortPath.length - 1
+            let closestDistance = Number.MAX_SAFE_INTEGER
+            this.board.snakes
+            .filter((snake) => snake.id !== this.you.id)
+            .forEach((snake) => {
+                const snakeDistance = this.findDistance(snake.head, coord)
+                if (snakeDistance < closestDistance) {
+                    closestDistance = snakeDistance
+                }
+            })
+            if (shortDistance < closestDistance && shortCost < myHealth) {
+                chosenPath = shortPath
+            }
+        } else {
+            if (shortCost < myHealth) {
+                chosenPath = shortPath
             }
         }
+
         return chosenPath
     }
 
     findDistance(start: Coord, coord: Coord) {
         return dijkstra.find_path(
-            this.distanceGraph,
+            this.normGraph,
             this.keyName(start), 
             this.keyName(coord)
         ).length - 1
