@@ -12,7 +12,7 @@ const DEBUG = process.env.DEBUG
 const PRIORITIES = {
     TO_FOOD: 4, // Steal from an equal snake, ignore for a guaranteed yummy snake
     SCARY_SNAKE: -7, // -9, -8 or -7 if enemy has 1, 2, or 3 move options
-    EQUAL_SNAKE: -7, // -6, -5, or -4 if enemy has 1, 2, or 3 move options
+    EQUAL_SNAKE: -8, // -7, -6, or -5 if enemy has 1, 2, or 3 move options
     YUMMY_SNAKE: 5, // 5, 3, or 1 if enemy has 1, 2, or 3 move options
     TUNNEL: -5
 }
@@ -209,8 +209,8 @@ function move(gameState: GameState): MoveResponse {
         } else {
             snakePriority = PRIORITIES.EQUAL_SNAKE // -6
             snakePriority += validMoves(gameState, snake)
-            // snake with 3 moves -> -4
-            // snake with 1 move -> -6
+            // snake with 3 moves -> -5
+            // snake with 1 move -> -7
         }
         
         if (snakeHead.y === up(myHead, 1, directionHeight).y ||
