@@ -9,6 +9,7 @@ const ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'})
 const putItem = util.promisify(ddb.putItem)
 
 export async function saveGame(gameState: GameState) {
+    const time = Date.now()
     const gameId: string = gameState.game.id || (new Date()).toString()
     const outcome = gameState.board.snakes.length === 0 ? 'draw' :
         gameState.board.snakes[0].id === gameState.you.id ? 'win' : 'loss'
@@ -21,6 +22,7 @@ export async function saveGame(gameState: GameState) {
         TableName: 'battlesnake',
         Item: {
             'gameId': { S: gameId },
+            'time': { N: `${time}`},
             'version': { S: version },
             'outcome': { S: outcome },
             'winner': { S: winner },
