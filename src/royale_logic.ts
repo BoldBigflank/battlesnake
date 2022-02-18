@@ -10,7 +10,7 @@ const DEBUG = process.env.DEBUG
 
 const PRIORITIES = {
     TO_FOOD: 4, // Steal from an equal snake, ignore for a guaranteed yummy snake
-    SCARY_SNAKE: -5, // -7, -6 or -5 if enemy has 1, 2, or 3 move options
+    SCARY_SNAKE: -7, // -9, -8 or -7 if enemy has 1, 2, or 3 move options
     EQUAL_SNAKE: -6, // -6, -5, or -4 if enemy has 1, 2, or 3 move options
     YUMMY_SNAKE: 5, // 5, 3, or 1 if enemy has 1, 2, or 3 move options
     TUNNEL: -5
@@ -311,11 +311,18 @@ function validMoves(gameState: GameState, snake: Battlesnake): number {
     const directionWidth = isWrapped ? width : 0
 
     let result = [
-        up(snake.head, 1, directionHeight),
+        up(snakeHead, 1, directionHeight),
         down(snakeHead, 1, directionHeight),
         left(snakeHead, 1, directionWidth),
         right(snakeHead, 1, directionWidth)
     ]
+
+    result = result.filter((c) => 
+        c.x >= 0 &&
+        c.x < width &&
+        c.y >= 0 &&
+        c.y < height
+    )
 
     gameState.board.snakes.forEach((snake) => {
         snake.body.forEach((coord) => {
