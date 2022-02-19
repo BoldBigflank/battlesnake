@@ -4,7 +4,7 @@ import FloodFill from "./floodfill"
 import PriorityList from "./priorityList"
 import { up, down, left, right, coordEqual } from "./util"
 import { onGameEnd, onGameStart } from "./pixelring"
-import { saveGame } from "./storage"
+import { endGame, startGame } from "./storage"
 import { Router, Request, Response } from "express"
 
 const DEBUG = process.env.DEBUG
@@ -24,6 +24,7 @@ export function routes(router: Router) {
 
     router.post("/start", (req: Request, res: Response) => {
         res.send(start(req.body))
+        startGame(req.body)
     });
 
     router.post("/move", (req: Request, res: Response) => {
@@ -32,7 +33,7 @@ export function routes(router: Router) {
 
     router.post("/end", (req: Request, res: Response) => {
         res.send(end(req.body))
-        saveGame(req.body)
+        endGame(req.body)
     });
 
     return router
