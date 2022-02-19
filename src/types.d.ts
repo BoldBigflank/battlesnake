@@ -54,6 +54,12 @@ export interface Coord {
     r?: number;
 }
 
+export interface Customizations {
+    color: string;
+    head: string;
+    tail: string;
+}
+
 export interface Battlesnake {
     id: string;
     name: string;
@@ -62,6 +68,7 @@ export interface Battlesnake {
     latency: string;
     head: Coord;
     length: number;
+    customizations: Customizations;
 
     // Used in non-standard game modes
     shout: string;

@@ -7,26 +7,14 @@ const DEVICE_ID = process.env.DEVICE_ID
 const particleUrl = `https://api.particle.io/v1/devices/${DEVICE_ID}`
 const PIXEL_COUNT = 24
 
-const colors: Record<string,string> = {}
-
 export async function onGameStart(gameState: GameState) {
     const { board, game } = gameState
     if (!ACCESS_TOKEN) {
         console.error('Particle Access Token missing')
         return
     }
-    // get the colors from 
     const colorArray: string[] = []
     const numLights = Math.floor(PIXEL_COUNT / board.snakes.length)
-    const gameUrl = `https://engine.battlesnake.com/games/${game.id}/frames?offset=0&limit=1`
-    const response = await fetch(gameUrl)
-
-    const gameData = await response.json()
-    if (gameData.error) {
-        console.log(gameUrl)
-        console.error(gameData.error)
-        return
-    }
 
     const d = new Date()
     console.log(
@@ -34,13 +22,11 @@ export async function onGameStart(gameState: GameState) {
         chalk.green('from', chalk.yellow(`${gameState.game.source}`))
     )
     console.log(chalk.blue(`https://play.battlesnake.com/g/${game.id}/`))
-    gameData.Frames[0].Snakes.forEach((snake: APISnake) => {
-        const snakeColor = snake.Color.substr(1) || 'FF00FF'
-        // console.log(chalk.green('test'))
-        console.log(chalk.hex(snake.Color).bold(`◀■■■◗ ${snake.Name}`))
-        colors[snake.Name] = snakeColor
+    gameState.board.snakes.forEach((snake) => {
+        const snakeColor = snake.customizations.color.substring(1) || 'FF00FF'
+        console.log(chalk.hex(snake.customizations.color).bold(`◀■■■◗ ${snake.name}`))
         for (let i = 0; i < numLights - 1; i++) {
-            if (i === 0 && snake.ID === gameState.you.id) {
+            if (i === 0 && snake.id === gameState.you.id) {
                 colorArray.push('FFFFFF')
             } else {
                 colorArray.push(snakeColor)
@@ -73,7 +59,7 @@ export async function onGameEnd(gameState: GameState) {
     )
     if (board.snakes.length) {
         const winner = board.snakes[0]
-        color = colors[winner.name] || "FF00FF"
+        color = winner.customizations.color.substring(1)
         const snakeText = "◀" + "".padStart(winner.length - 2, "■") + "◗"
         if (board.snakes[0].id === gameState.you.id) {
             console.log(
