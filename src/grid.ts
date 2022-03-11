@@ -95,6 +95,14 @@ export default class Grid {
         return `${coord.x},${coord.y}`
     }
 
+    coordValue(key: string): Coord {
+        const [x, y] = key.split(',')
+        return {
+            x: parseInt(x),
+            y: parseInt(y)
+        }
+    }
+
     adjKeys(coord: Coord): Coord[] {
         const boardWidth = this.board.width
         const boardHeight = this.board.height

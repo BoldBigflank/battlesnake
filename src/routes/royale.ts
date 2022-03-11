@@ -168,7 +168,12 @@ function move(gameState: GameState): MoveResponse {
             const path = grid.findBestPath(gameState.you.body[gameState.you.length-1])
             if (path.length > 1) { // Gotta have space
                 // TODO: Make sure we don't hit our tail right after eating
-                chosenPath = path
+                // TODO: Make sure we don't go from open to hazard
+                const pathCount = path.findIndex((key) => {
+                    console.log('check hazard', key, grid.coordValue(key), isHazard(grid.coordValue(key), gameState))
+                    return isHazard(grid.coordValue(key), gameState)
+                })
+                if (pathCount <= 0) chosenPath = path
             }
         } catch (error) {
             // console.log(`${gameState.game.id} ${gameState.you.id} no path to my tail`)
@@ -288,6 +293,12 @@ function move(gameState: GameState): MoveResponse {
 }
 
 // HELPER FUNCTIONS
+function isHazard(coord: Coord, gameState: GameState): boolean {
+    return gameState.board.hazards.some((hazard) => {
+        return coordEqual(hazard, coord)
+    })
+}
+
 function getDirection(start: Coord, key: string, gameState: GameState): string | undefined {
     const [keyX, keyY] = key.split(',')
     const { width, height } = gameState.board
