@@ -108,18 +108,18 @@ function move(gameState: GameState): MoveResponse {
     // Step 3 - Don't collide with others.
     // Use information in gameState to prevent your Battlesnake from colliding with itself.
     if (DEBUG) console.log('* Checking other snakes')
-    const allSnakes = gameState.board.snakes
-    allSnakes.forEach((snake) => {
+    gameState.board.snakes.forEach((snake) => {
         snake.body.forEach((coord, i) => {
+            const blockValue = (snake.id === gameState.you.id) ? 0 : 1
             if (i === snake.body.length - 1) return // You can move onto people's tails
             if (coord.x === (myHead.x - 1 + boardWidth) % boardWidth && coord.y === myHead.y) {
-                priorityMoves.left = 0
+                priorityMoves.left = blockValue
             } else if (coord.x === (myHead.x + 1) % boardWidth && coord.y === myHead.y) {
-                priorityMoves.right = 0
+                priorityMoves.right = blockValue
             } else if (coord.y === (myHead.y - 1 + boardHeight) % boardHeight && coord.x === myHead.x) {
-                priorityMoves.down = 0
+                priorityMoves.down = blockValue
             } else if (coord.y === (myHead.y + 1) % boardHeight && coord.x === myHead.x) {
-                priorityMoves.up = 0
+                priorityMoves.up = blockValue
             }
         })
     })
@@ -161,7 +161,7 @@ function move(gameState: GameState): MoveResponse {
             // console.log(`${gameState.game.id} ${gameState.you.id} no path to food`)
         }
     })
-    if (DEBUG) console.log(chosenPath.length === 0 ? '* No good path found' : `* Found ${chosenPath.length - 1} step path`)
+    if (DEBUG) console.log(chosenPath.length === 0 ? '* No good path to food found' : `* Found ${chosenPath.length - 1} step path`)
     // Move to my own tail otherwise
     if (!chosenPath.length) {
         try {
@@ -175,12 +175,20 @@ function move(gameState: GameState): MoveResponse {
         }
     }
     if (chosenPath.length > 1) {
-        grid.getHealthCost(chosenPath)
         const direction = getDirection(myHead, chosenPath[1], gameState)
         if (direction === 'up') priorityMoves.up += PRIORITIES.TO_FOOD
         if (direction === 'down') priorityMoves.down += PRIORITIES.TO_FOOD
         if (direction === 'left') priorityMoves.left += PRIORITIES.TO_FOOD
         if (direction === 'right') priorityMoves.right += PRIORITIES.TO_FOOD
+    } else {
+        if (DEBUG) console.log('* No good path to tail found')
+        // In this case, just deprioritize adjacent hazards
+        gameState.board.hazards.forEach((hazard) => {
+            if (coordEqual(up(myHead), hazard)) priorityMoves.up -= PRIORITIES.TO_FOOD
+            if (coordEqual(right(myHead), hazard)) priorityMoves.right -= PRIORITIES.TO_FOOD
+            if (coordEqual(down(myHead), hazard)) priorityMoves.down -= PRIORITIES.TO_FOOD
+            if (coordEqual(left(myHead), hazard)) priorityMoves.left -= PRIORITIES.TO_FOOD
+        })
     }
 
     /*
