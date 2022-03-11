@@ -84,21 +84,23 @@ function move(gameState: GameState): MoveResponse {
     // TODO: Step 1 - Don't hit walls.
     // Use information in gameState to prevent your Battlesnake from moving beyond the boundaries of the board.
     // 0, 0 is bottom left square
-    const boardWidth = gameState.board.width
-    const boardHeight = gameState.board.height
+    const isWrapped = gameState.game.ruleset.name === 'wrapped'
+    const { width, height } = gameState.board
+    const directionHeight = isWrapped ? height : 0
+    const directionWidth = isWrapped ? width : 0
 
     if (DEBUG) console.log('* Checking walls')
     if (gameState.game.ruleset.name !== 'wrapped') {
         if (myHead.x === 0) {
             priorityMoves.left = 0
         }
-        if (myHead.x === boardWidth - 1) {
+        if (myHead.x === width - 1) {
             priorityMoves.right = 0
         }
         if (myHead.y === 0) {
             priorityMoves.down = 0
         }
-        if (myHead.y === boardHeight - 1) {
+        if (myHead.y === height - 1) {
             priorityMoves.up = 0
         }
     }
@@ -110,19 +112,31 @@ function move(gameState: GameState): MoveResponse {
     if (DEBUG) console.log('* Checking other snakes')
     gameState.board.snakes.forEach((snake) => {
         snake.body.forEach((coord, i) => {
-            const blockValue = (snake.id === gameState.you.id) ? 0 : 1
+            const blockValue = (snake.id === gameState.you.id) ? 0 : 2
             if (i === snake.body.length - 1) return // You can move onto people's tails
-            if (coord.x === (myHead.x - 1 + boardWidth) % boardWidth && coord.y === myHead.y) {
+            if (coord.x === (myHead.x - 1 + width) % width && coord.y === myHead.y) {
                 priorityMoves.left = blockValue
-            } else if (coord.x === (myHead.x + 1) % boardWidth && coord.y === myHead.y) {
+            } else if (coord.x === (myHead.x + 1) % width && coord.y === myHead.y) {
                 priorityMoves.right = blockValue
-            } else if (coord.y === (myHead.y - 1 + boardHeight) % boardHeight && coord.x === myHead.x) {
+            } else if (coord.y === (myHead.y - 1 + height) % height && coord.x === myHead.x) {
                 priorityMoves.down = blockValue
-            } else if (coord.y === (myHead.y + 1) % boardHeight && coord.x === myHead.x) {
+            } else if (coord.y === (myHead.y + 1) % height && coord.x === myHead.x) {
                 priorityMoves.up = blockValue
             }
         })
     })
+
+    /*
+        Deprioritize tiles that will kill us
+    */
+   if (gameState.game.ruleset.settings.hazardDamagePerTurn + 1 >= gameState.you.health) {
+       gameState.board.hazards.forEach((hazard) => {
+           if (coordEqual(up(myHead, 1, directionHeight), hazard)) priorityMoves.up = 1
+           if (coordEqual(down(myHead, 1, directionHeight), hazard)) priorityMoves.down = 1
+           if (coordEqual(left(myHead, 1, directionWidth), hazard)) priorityMoves.left = 1
+           if (coordEqual(right(myHead, 1, directionWidth), hazard)) priorityMoves.right = 1
+       })
+   }
 
     /*
         Deprioritize dead ends
@@ -170,7 +184,6 @@ function move(gameState: GameState): MoveResponse {
                 // TODO: Make sure we don't hit our tail right after eating
                 // TODO: Make sure we don't go from open to hazard
                 const pathCount = path.findIndex((key) => {
-                    console.log('check hazard', key, grid.coordValue(key), isHazard(grid.coordValue(key), gameState))
                     return isHazard(grid.coordValue(key), gameState)
                 })
                 if (pathCount <= 0) chosenPath = path
@@ -186,13 +199,13 @@ function move(gameState: GameState): MoveResponse {
         if (direction === 'left') priorityMoves.left += PRIORITIES.TO_FOOD
         if (direction === 'right') priorityMoves.right += PRIORITIES.TO_FOOD
     } else {
-        if (DEBUG) console.log('* No good path to tail found')
+        if (DEBUG) console.log('* No good path to tail found, just avoiding adjacent hazards')
         // In this case, just deprioritize adjacent hazards
         gameState.board.hazards.forEach((hazard) => {
-            if (coordEqual(up(myHead), hazard)) priorityMoves.up -= PRIORITIES.TO_FOOD
-            if (coordEqual(right(myHead), hazard)) priorityMoves.right -= PRIORITIES.TO_FOOD
-            if (coordEqual(down(myHead), hazard)) priorityMoves.down -= PRIORITIES.TO_FOOD
-            if (coordEqual(left(myHead), hazard)) priorityMoves.left -= PRIORITIES.TO_FOOD
+            if (coordEqual(up(myHead, 1, directionHeight), hazard)) priorityMoves.up -= PRIORITIES.TO_FOOD
+            if (coordEqual(right(myHead, 1, directionWidth), hazard)) priorityMoves.right -= PRIORITIES.TO_FOOD
+            if (coordEqual(down(myHead, 1, directionHeight), hazard)) priorityMoves.down -= PRIORITIES.TO_FOOD
+            if (coordEqual(left(myHead, 1, directionWidth), hazard)) priorityMoves.left -= PRIORITIES.TO_FOOD
         })
     }
 
@@ -202,11 +215,7 @@ function move(gameState: GameState): MoveResponse {
     if (DEBUG) console.log('* Checking snake positions')
     gameState.board.snakes.forEach((snake) => {
         const snakeHead = snake.head
-        const isWrapped = gameState.game.ruleset.name === 'wrapped'
-        const { width, height } = gameState.board
-        const directionHeight = isWrapped ? height : 0
-        const directionWidth = isWrapped ? width : 0
-
+        
         if (grid.findDistance(myHead, snakeHead) !== 2) return
         let snakePriority = 5
         if (snake.length > myLength) {
