@@ -90,7 +90,7 @@ export interface GameState {
     turn: number;
     board: Board;
     you: Battlesnake;
-    thoughts: boolean;
+    thoughts?: boolean;
 }
 
 export type Graph = Record<string,Edges>

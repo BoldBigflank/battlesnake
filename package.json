@@ -6,6 +6,7 @@
     "build": "tsc",
     "prestart": "npm run build",
     "start": "node build/index.js",
+    "led-board": "USE_LED_BOARD=true npm start",
     "test": "jest --silent",
     "dev": "npx nodemon -e ts  --exec \"npm run start || exit 1\""
   },
@@ -26,7 +27,9 @@
     "cross-fetch": "^3.1.4",
     "dijkstrajs": "^1.0.2",
     "express": "^4.17.1",
+    "isomorphic-ws": "^4.0.1",
     "node-dijkstra": "^2.5.0",
+    "rpi-led-matrix": "^1.11.1",
     "typescript": "^4.3.5"
   },
   "devDependencies": {
