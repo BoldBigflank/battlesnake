@@ -131,10 +131,13 @@ function move(gameState: GameState): MoveResponse {
     */
    if (gameState.game.ruleset.settings.hazardDamagePerTurn + 1 >= gameState.you.health) {
        gameState.board.hazards.forEach((hazard) => {
-           if (coordEqual(up(myHead, 1, directionHeight), hazard)) priorityMoves.up = 1
-           if (coordEqual(down(myHead, 1, directionHeight), hazard)) priorityMoves.down = 1
-           if (coordEqual(left(myHead, 1, directionWidth), hazard)) priorityMoves.left = 1
-           if (coordEqual(right(myHead, 1, directionWidth), hazard)) priorityMoves.right = 1
+            // It's fine if it is also food
+            if (gameState.board.food.some((food) => coordEqual(food, hazard))) return 
+
+            if (coordEqual(up(myHead, 1, directionHeight), hazard)) priorityMoves.up = 1
+            if (coordEqual(down(myHead, 1, directionHeight), hazard)) priorityMoves.down = 1
+            if (coordEqual(left(myHead, 1, directionWidth), hazard)) priorityMoves.left = 1
+            if (coordEqual(right(myHead, 1, directionWidth), hazard)) priorityMoves.right = 1
        })
    }
 
