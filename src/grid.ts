@@ -77,6 +77,8 @@ export default class Grid {
                 return
             }
             snake.body.forEach((coord, i) => {
+                // Ignore tails bc they will always be gone for any position
+                if (i === snake.body.length - 1) return
                 this.setAllEdges(this.normGraph, coord, 1000000)
                 const distance = this.findDistance(this.you.head, coord)
                 if (distance >= (snake.length - i)) return // It's gonna be gone then
