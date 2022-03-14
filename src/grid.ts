@@ -76,12 +76,24 @@ export default class Grid {
             ) {
                 return
             }
-            snake.body.forEach((coord, i) => {
+
+            // Add bumps at each distance from food
+            const bumpyBody = [...snake.body]
+            this.board.food
+                .map((food) => this.findDistance(bumpyBody[0], food)) // Get distance
+                .sort().reverse() // Sort descending
+                .forEach((foodDist) => {
+                    if (foodDist >= bumpyBody.length) return
+                    const newIndex = bumpyBody.length - foodDist - 1
+                    bumpyBody.splice(newIndex, 0, bumpyBody[newIndex])
+                })
+
+            bumpyBody.forEach((coord, i) => {
                 // Ignore tails bc they will always be gone for any position
-                if (i === snake.body.length - 1) return
+                if (i === bumpyBody.length - 1) return
                 this.setAllEdges(this.normGraph, coord, 1000000)
                 const distance = this.findDistance(this.you.head, coord)
-                if (distance >= (snake.length - i)) return // It's gonna be gone then
+                if (distance >= (bumpyBody.length - i)) return // It's gonna be gone then
                 // There's a small chance that the snake might run out of health or
                 // Move out of bounds and be removed before our move resolves
                 // So it's better to move into another snake than into a wall.
