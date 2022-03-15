@@ -2,7 +2,7 @@ import { InfoResponse, GameState, MoveResponse, Coord, Battlesnake } from "../ty
 import Grid from '../grid'
 import FloodFill from "../floodfill"
 import PriorityList from "../priorityList"
-import { up, down, left, right, coordEqual } from "../util"
+import { up, down, left, right, coordEqual, BoardMarks } from "../util"
 import { onGameEnd, onGameStart } from "../pixelring"
 import { endGame, startGame } from "../storage"
 import { Router, Request, Response } from "express"
@@ -77,6 +77,7 @@ function end(gameState: GameState): void {
 
 function move(gameState: GameState): MoveResponse {
     const priorityMoves = new PriorityList()
+    const marks = new BoardMarks(gameState)
 
     const myHead = gameState.you.head
     const myLength = gameState.you.length
@@ -197,10 +198,15 @@ function move(gameState: GameState): MoveResponse {
     }
     if (chosenPath.length > 1) {
         const direction = getDirection(myHead, chosenPath[1], gameState)
-        if (direction === 'up') priorityMoves.up += PRIORITIES.TO_FOOD
-        if (direction === 'down') priorityMoves.down += PRIORITIES.TO_FOOD
-        if (direction === 'left') priorityMoves.left += PRIORITIES.TO_FOOD
-        if (direction === 'right') priorityMoves.right += PRIORITIES.TO_FOOD
+        let foodPriority = PRIORITIES.TO_FOOD
+        if (marks.getMarks(grid.coordValue(chosenPath[1])).some((mark) => mark === 'scary')) {
+            if (DEBUG) console.log('* Food blocked by scary snake')
+            foodPriority = -1 * foodPriority
+        }
+        if (direction === 'up') priorityMoves.up += foodPriority
+        if (direction === 'down') priorityMoves.down += foodPriority
+        if (direction === 'left') priorityMoves.left += foodPriority
+        if (direction === 'right') priorityMoves.right += foodPriority
     } else {
         if (DEBUG) console.log('* No good path to tail found, just avoiding adjacent hazards')
         // In this case, just deprioritize adjacent hazards
