@@ -22,5 +22,5 @@ app.use('/standard', standard(express.Router()))
 
 // Start the Express server
 app.listen(port, () => {
-    console.log(`Starting Battlesnake Server at http://0.0.0.0:${port}...`)
+    console.log(`${Date.now()} Battlesnake Server Started at http://0.0.0.0:${port}`)
 });
