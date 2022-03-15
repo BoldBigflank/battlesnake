@@ -148,16 +148,17 @@ function move(gameState: GameState): MoveResponse {
     const floodFill = new FloodFill(gameState)
     const fillSpace = floodFill.buildGrid(myHead)
     if (DEBUG) console.log('* Checking for tunnels', fillSpace)
-    if (fillSpace.up > 0 && fillSpace.up < myLength * 1.5) {
+    const goalSpace = Math.min(myLength * 1.2, fillSpace.max)
+    if (fillSpace.up > 0 && fillSpace.up < goalSpace) {
         priorityMoves.up += PRIORITIES.TUNNEL
     }
-    if (fillSpace.right > 0 && fillSpace.right < myLength * 1.5) {
+    if (fillSpace.right > 0 && fillSpace.right < goalSpace) {
         priorityMoves.right += PRIORITIES.TUNNEL
     }
-    if (fillSpace.down > 0 && fillSpace.down < myLength * 1.5) {
+    if (fillSpace.down > 0 && fillSpace.down < goalSpace) {
         priorityMoves.down += PRIORITIES.TUNNEL
     }
-    if (fillSpace.left > 0 && fillSpace.left < myLength * 1.5) {
+    if (fillSpace.left > 0 && fillSpace.left < goalSpace) {
         priorityMoves.left += PRIORITIES.TUNNEL
     }
     

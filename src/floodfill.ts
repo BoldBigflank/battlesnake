@@ -7,7 +7,8 @@ type Directions = {
     up: number,
     right: number,
     down: number,
-    left: number
+    left: number,
+    max: number
 }
 
 export default class FloodFill {
@@ -52,12 +53,17 @@ export default class FloodFill {
         const { width, height } = this.board
         const directionWidth = isWrapped ? width : 0
         const directionHeight = isWrapped ? height : 0
-
+        
+        const fillUp = this.floodFill(up(start, 1, directionHeight))
+        const fillRight = this.floodFill(right(start, 1, directionWidth))
+        const fillDown = this.floodFill(down(start, 1, directionHeight))
+        const fillLeft = this.floodFill(left(start, 1, directionWidth))
         return {
-            up: this.floodFill(up(start, 1, directionHeight)),
-            right: this.floodFill(right(start, 1, directionWidth)),
-            down: this.floodFill(down(start, 1, directionHeight)),
-            left: this.floodFill(left(start, 1, directionWidth))
+            up: fillUp,
+            right: fillRight,
+            down: fillDown,
+            left: fillLeft,
+            max: Math.max(fillUp, fillRight, fillDown, fillLeft)
         }
     }
 
