@@ -20,6 +20,7 @@ export default class FloodFill {
     fillSquares: Coord[]
     snakeSquares: Coord[]
     queue: Coord[]
+    bumpySnakes: Coord[][]
 
     constructor(gameState: GameState) {
         this.game = gameState.game
@@ -30,6 +31,20 @@ export default class FloodFill {
         this.fillSquares = []
         this.snakeSquares = []
         this.queue = []
+
+        this.bumpySnakes = this.board.snakes.map((snake) => {
+            // Add bumps at each distance from food
+            const bumpyBody = [...snake.body]
+            this.board.food
+            .map((food) => coordDistance(bumpyBody[0], food)) // Get distance
+            .sort().reverse() // Sort descending
+            .forEach((foodDist) => {
+                if (foodDist >= bumpyBody.length) return
+                const newIndex = bumpyBody.length - foodDist - 1
+                bumpyBody.splice(newIndex, 0, bumpyBody[newIndex])
+            })
+            return bumpyBody
+        })
     }
 
     buildGrid(start: Coord): Directions {
@@ -95,13 +110,13 @@ export default class FloodFill {
         }
         // Is there a snake there? Ignore tails
         const distance = coordDistance(coord, this.you.head, this.board.width, this.board.height)
-        for (let i = 0; i < this.board.snakes.length; i++) {
-            let snake = this.board.snakes[i]
+        for (let i = 0; i < this.bumpySnakes.length; i++) {
+            let snake = this.bumpySnakes[i]
             for (let j = 0; j < snake.length; j++) {
                 if (distance >= (snake.length - j)) {
                     continue
                 }
-                if (coordEqual(coord, snake.body[j])) {
+                if (coordEqual(coord, snake[j])) {
                     return false
                 }
             }
