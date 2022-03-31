@@ -3,7 +3,6 @@ import Grid from '../grid'
 import FloodFill from "../floodfill"
 import PriorityList from "../priorityList"
 import { up, down, left, right, coordEqual, BoardMarks } from "../util"
-import { onGameEnd, onGameStart } from "../pixelring"
 import { endGame, startGame } from "../storage"
 import { Router, Request, Response } from "express"
 
@@ -53,10 +52,8 @@ function info(): InfoResponse {
 }
 
 function start(gameState: GameState): void {
-    // console.log(`${gameState.game.id} ${gameState.you.id} START`)
-    onGameStart(gameState).catch((error) => {
-        console.warn('failed to update pixelring')
-    })
+    const url = `http://bymy.selfip.com:5556/?gameId=${gameState.game.id}`
+    fetch(url) // Don't need to await since we don't care about the result
 }
 
 function end(gameState: GameState): void {
@@ -71,8 +68,6 @@ function end(gameState: GameState): void {
             result = `${name} - I WON!`
         }
     }
-    // console.log(`${gameState.game.id} ${gameState.you.id} END - ${result}\n`)
-    onGameEnd(gameState)
 }
 
 function move(gameState: GameState): MoveResponse {
