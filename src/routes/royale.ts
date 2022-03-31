@@ -5,6 +5,7 @@ import PriorityList from "../priorityList"
 import { up, down, left, right, coordEqual, BoardMarks } from "../util"
 import { endGame, startGame } from "../storage"
 import { Router, Request, Response } from "express"
+import fetch from 'cross-fetch'
 
 const DEBUG = process.env.DEBUG
 
