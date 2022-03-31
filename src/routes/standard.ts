@@ -1,6 +1,6 @@
 import { InfoResponse, GameState, MoveResponse, Coord } from "../types"
 import { coordDistance, hasFood } from "../util"
-import { onGameEnd, onGameStart } from "../pixelring"
+import { onGameEnd, onGameStart } from "../logging"
 import { Router, Request, Response } from "express"
 import Grid from '../standard_grid'
 
@@ -47,7 +47,7 @@ function info(): InfoResponse {
 function start(gameState: GameState): void {
     // console.log(`${gameState.game.id} ${gameState.you.id} START`)
     onGameStart(gameState).catch((error) => {
-        console.warn('failed to update pixelring')
+        console.warn('failed to update logging')
     })
 }
 

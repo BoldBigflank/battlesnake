@@ -3,6 +3,7 @@ import Grid from '../grid'
 import FloodFill from "../floodfill"
 import PriorityList from "../priorityList"
 import { up, down, left, right, coordEqual, BoardMarks } from "../util"
+import { onGameStart, onGameEnd } from "../logging"
 import { endGame, startGame } from "../storage"
 import { Router, Request, Response } from "express"
 import fetch from 'cross-fetch'
@@ -53,25 +54,14 @@ function info(): InfoResponse {
 }
 
 function start(gameState: GameState): void {
-    const url = `http://bymy.selfip.com:5556/?gameId=${gameState.game.id}`
-    fetch(url) // Don't need to await since we don't care about the result
-    .catch(err => {
-        console.error("Unable to contact SnakeLED")
-    })
+    onGameStart(gameState)
+        .catch(err => {
+            console.warn('failed to update logging')
+        })
 }
 
 function end(gameState: GameState): void {
-    let result = 'UNKNONWN'
-    if (gameState.board.snakes.length === 0) {
-        result = 'DRAW'
-    } else {
-        const winningSnake = gameState.board.snakes[0]
-        const name = gameState.board.snakes[0].name
-        result = `${name} WINS`
-        if (winningSnake.id === gameState.you.id) {
-            result = `${name} - I WON!`
-        }
-    }
+    onGameEnd(gameState)
 }
 
 function move(gameState: GameState): MoveResponse {

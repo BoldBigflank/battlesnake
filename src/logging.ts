@@ -9,13 +9,19 @@ const PIXEL_COUNT = 24
 
 export async function onGameStart(gameState: GameState) {
     const { board, game } = gameState
-    if (!ACCESS_TOKEN) {
-        console.error('Particle Access Token missing')
-        return
-    }
+
+    // SnakeLED
+    const url = `http://bymy.selfip.com:5556/?gameId=${game.id}`
+    fetch(url)
+        .catch(err => {
+            console.log(chalk.red('Unable to contact SnakeLED'))
+        })
+
+    // Pixelring
     const colorArray: string[] = []
     const numLights = Math.floor(PIXEL_COUNT / board.snakes.length)
 
+    // Chalk Logging
     const d = new Date()
     console.log(
         chalk.green(d, '- Started', chalk.yellow(`${gameState.game.ruleset.name}`), 'game'),
@@ -24,7 +30,10 @@ export async function onGameStart(gameState: GameState) {
     console.log(chalk.blue(`https://play.battlesnake.com/g/${game.id}/`))
     gameState.board.snakes.forEach((snake) => {
         const snakeColor = snake.customizations.color.substring(1) || 'FF00FF'
+        // Chalk Logging
         console.log(chalk.hex(snake.customizations.color).bold(`◀■■■◗ ${snake.name}`))
+
+        // Pixelring
         for (let i = 0; i < numLights - 1; i++) {
             if (i === 0 && snake.id === gameState.you.id) {
                 colorArray.push('FFFFFF')
@@ -40,16 +49,12 @@ export async function onGameStart(gameState: GameState) {
     }
 
     const colorString = colorArray.reverse().join('')
-    await sendCloudFunction('colors', colorString)
-    await sendCloudFunction('speed', '2000')
+    // await sendCloudFunction('colors', colorString)
+    // await sendCloudFunction('speed', '2000')
 }
 
 export async function onGameEnd(gameState: GameState) {
     const { board, you } = gameState
-    if (!ACCESS_TOKEN) {
-        console.error('Particle Access Token missing')
-        return
-    }
     let color = "000000"
     const colorArray = []
     console.log(
@@ -81,11 +86,15 @@ export async function onGameEnd(gameState: GameState) {
     }
     
     const colorString = colorArray.reverse().join('')
-    sendCloudFunction('colors', colorString)
-    sendCloudFunction('speed', '6000')
+    // sendCloudFunction('colors', colorString)
+    // sendCloudFunction('speed', '6000')
 }
 
 async function sendCloudFunction(path: string, args: string) {
+    if (!ACCESS_TOKEN) {
+        console.log(chalk.red('Particle Access Token missing'))
+        return
+    }
     const response = await fetch(`${particleUrl}/${path}`, {
         method: 'POST',
         headers: {
