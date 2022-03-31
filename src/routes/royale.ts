@@ -55,6 +55,9 @@ function info(): InfoResponse {
 function start(gameState: GameState): void {
     const url = `http://bymy.selfip.com:5556/?gameId=${gameState.game.id}`
     fetch(url) // Don't need to await since we don't care about the result
+    .catch(err => {
+        console.error("Unable to contact SnakeLED")
+    })
 }
 
 function end(gameState: GameState): void {
