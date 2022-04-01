@@ -49,11 +49,10 @@ export function routes(router: Router) {
     return router
 }
 
-function info(skin: string): InfoResponse {
-    console.log("INFO")
-    const cust: Skin = SKINS[skin]
+function info(skin: Skin): InfoResponse {
+    console.log("INFO", skin)
     const response: InfoResponse = {
-        ...cust,
+        ...skin,
         apiversion: "1",
         author: "boldbigflank",
         version: '1.0.0'
