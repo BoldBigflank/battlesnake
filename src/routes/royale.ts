@@ -10,6 +10,30 @@ import fetch from 'cross-fetch'
 
 const DEBUG = process.env.DEBUG
 
+type Skin = {
+    color: string
+    head: string
+    tail: string
+}
+
+const SKINS: Record<string,Skin> = {
+    base: {
+        color: "#1778B5",
+        head: "orca",
+        tail: "shiny",
+    },
+    red: {
+        color: "#b51737",
+        head: "pixel",
+        tail: "pixel"
+    },
+    ngrok: {
+        color: "#ff00ff",
+        head: "happy",
+        tail: "sharp"
+    }
+}
+
 const PRIORITIES = {
     TO_FOOD: 4, // Steal from an equal snake, ignore for a guaranteed yummy snake
     SCARY_SNAKE: -7, // -9, -8 or -7 if enemy has 1, 2, or 3 move options
@@ -20,7 +44,8 @@ const PRIORITIES = {
 
 export function routes(router: Router) {
     router.get("/", (req: Request, res: Response) => {
-        res.send(info())
+        const skin = req.query ? req.query.skin as string : "base"
+        res.send(info(skin))
     });
 
     router.post("/start", (req: Request, res: Response) => {
@@ -40,14 +65,13 @@ export function routes(router: Router) {
     return router
 }
 
-function info(): InfoResponse {
+function info(skin: string): InfoResponse {
     console.log("INFO")
+    const cust: Skin = SKINS[skin]
     const response: InfoResponse = {
+        ...cust,
         apiversion: "1",
         author: "boldbigflank",
-        color: "#1778B5",
-        head: "orca",
-        tail: "shiny",
         version: '1.0.0'
     }
     return response
