@@ -16,24 +16,6 @@ type Skin = {
     tail: string
 }
 
-const SKINS: Record<string,Skin> = {
-    base: {
-        color: "#1778B5",
-        head: "orca",
-        tail: "shiny",
-    },
-    red: {
-        color: "#b51737",
-        head: "pixel",
-        tail: "pixel"
-    },
-    ngrok: {
-        color: "#ff00ff",
-        head: "happy",
-        tail: "sharp"
-    }
-}
-
 const PRIORITIES = {
     TO_FOOD: 4, // Steal from an equal snake, ignore for a guaranteed yummy snake
     SCARY_SNAKE: -7, // -9, -8 or -7 if enemy has 1, 2, or 3 move options
@@ -44,8 +26,10 @@ const PRIORITIES = {
 
 export function routes(router: Router) {
     router.get("/", (req: Request, res: Response) => {
-        const skin = req.query ? req.query.skin as string : "base"
-        res.send(info(skin))
+        const color = req.query.color ? req.query.color as string : "#1778B5"
+        const head = req.query.head ? req.query.head as string : "orca"
+        const tail = req.query.tail ? req.query.tail as string : "shiny"
+        res.send(info({color, head, tail}))
     });
 
     router.post("/start", (req: Request, res: Response) => {
