@@ -26,7 +26,6 @@ export async function startGame(gameState: GameState) {
             name
         }
     }
-    console.log(params)
     try {
         const data = await docClient.put(params).promise()
     } catch (error) {

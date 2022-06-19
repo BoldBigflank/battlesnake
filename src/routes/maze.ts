@@ -104,6 +104,6 @@ function move(gameState: GameState): MoveResponse {
         move: safeMoves[Math.floor(Math.random() * safeMoves.length)],
     }
 
-    console.log(`${gameState.game.id} MOVE ${gameState.turn}: ${response.move}`)
+    // console.log(`${gameState.game.id} MOVE ${gameState.turn}: ${response.move}`)
     return response
 }
