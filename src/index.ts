@@ -6,6 +6,7 @@ import cors from "cors"
 
 import { routes as royale } from "./routes/royale";
 import { routes as standard } from './routes/standard'
+import { routes as maze } from './routes/maze'
 
 const app = express()
 app.use(express.json())
@@ -19,6 +20,8 @@ const port = process.env.PORT || 5555
 app.use('/', royale(express.Router()))
 // Hisstin Milioti
 app.use('/standard', standard(express.Router()))
+// Arcade Maze Runner
+app.use('/maze', maze(express.Router()))
 
 // Start the Express server
 app.listen(port, () => {

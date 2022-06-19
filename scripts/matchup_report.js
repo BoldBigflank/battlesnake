@@ -7,6 +7,9 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 const now = Date.now()
 console.log(now)
 
+const START_OF_LEAGUE = 1646976275000
+const END_OF_LEAGUE = 1647313944111
+
 const main = async () => {
     const winnersCount = {}
     const wonAgainst = {}
@@ -22,7 +25,7 @@ const main = async () => {
             "#source": "source"
         },
         ExpressionAttributeValues: {
-            ":t1": 1646976275000,
+            ":t1": END_OF_LEAGUE,
             ":t2": now,
             ":ruleset": "wrapped"
         }

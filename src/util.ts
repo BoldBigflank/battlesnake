@@ -20,25 +20,27 @@ export class BoardMarks {
         gameState.board.hazards.forEach((hazard) => {
             this.markTile(hazard, 'hazard')
         })
-        // Mark around scary snakes
-        gameState.board.snakes
-        .filter((snake) => snake.length > gameState.you.length)
-        .forEach((snake) => {
-            this.markTile(up(snake.head, 1, directionHeight), 'scary')
-            this.markTile(right(snake.head, 1, directionHeight), 'scary')
-            this.markTile(down(snake.head, 1, directionHeight), 'scary')
-            this.markTile(left(snake.head, 1, directionHeight), 'scary')
-        })
-        // Mark around yummy snakes
-        gameState.board.snakes
-        .filter((snake) => snake.length < gameState.you.length)
-        .forEach((snake) => {
-            this.markTile(up(snake.head, 1, directionHeight), 'yummy')
-            this.markTile(right(snake.head, 1, directionHeight), 'yummy')
-            this.markTile(down(snake.head, 1, directionHeight), 'yummy')
-            this.markTile(left(snake.head, 1, directionHeight), 'yummy')
-        })
         
+        gameState.board.snakes
+        .forEach((snake) => {
+            snake.body.forEach((segment) => {
+                this.markTile(segment, 'snake')
+            })
+            if (snake.length > gameState.you.length) {
+                this.markTile(up(snake.head, 1, directionHeight), 'scary')
+                this.markTile(right(snake.head, 1, directionHeight), 'scary')
+                this.markTile(down(snake.head, 1, directionHeight), 'scary')
+                this.markTile(left(snake.head, 1, directionHeight), 'scary')
+            }
+            // .filter((snake) => snake.length > gameState.you.length)
+            if (snake.length < gameState.you.length) {
+                this.markTile(up(snake.head, 1, directionHeight), 'yummy')
+                this.markTile(right(snake.head, 1, directionHeight), 'yummy')
+                this.markTile(down(snake.head, 1, directionHeight), 'yummy')
+                this.markTile(left(snake.head, 1, directionHeight), 'yummy')
+            }
+        })
+
     }
 
     markTile(coord: Coord, mark: string) {
@@ -49,6 +51,16 @@ export class BoardMarks {
 
     getMarks(coord: Coord): string[] {
         return this.tiles[coordKey(coord)] || []
+    }
+
+    hasMark(coord: Coord, type: string) {
+        const marks = this.getMarks(coord)
+        return marks.some((mark) => mark === type)
+    }
+
+    hasSomeMarks(coord: Coord, types: string[]) {
+        const marks = this.getMarks(coord)
+        return marks.some((mark) => types.includes(mark))
     }
 }
 

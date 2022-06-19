@@ -258,7 +258,7 @@ function move(gameState: GameState): MoveResponse {
             priorityMoves.left += snakePriority
         }
     })
-
+    
     // Take the highest priority move
     if (DEBUG) console.log('>>', priorityMoves)
     const move = priorityMoves.getDirection()

@@ -30,6 +30,8 @@ export interface RulesetSettings {
     foodSpawnChance: number;
     minimumFood: number;
     hazardDamagePerTurn: number;
+    hazardMap: string;
+    hazardMapAuthor: string;
     royale:RoyaleSettings;
     squad:SquadSettings;
 }
@@ -54,7 +56,7 @@ export interface Coord {
     r?: number;
 }
 
-export interface Customizations {
+export interface SnakeCustomizations {
     color: string;
     head: string;
     tail: string;
@@ -68,7 +70,7 @@ export interface Battlesnake {
     latency: string;
     head: Coord;
     length: number;
-    customizations: Customizations;
+    customizations: SnakeCustomizations;
 
     // Used in non-standard game modes
     shout: string;

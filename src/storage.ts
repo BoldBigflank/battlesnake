@@ -26,7 +26,12 @@ export async function startGame(gameState: GameState) {
             name
         }
     }
-    const data = await docClient.put(params).promise()
+    console.log(params)
+    try {
+        const data = await docClient.put(params).promise()
+    } catch (error) {
+        console.error(error)
+    }
 }
 
 export async function endGame(gameState: GameState) {
@@ -51,5 +56,9 @@ export async function endGame(gameState: GameState) {
         },
         ReturnValues: "UPDATED_NEW"
     }
-    const data = await docClient.update(params).promise()
+    try {
+        const data = await docClient.update(params).promise()
+    } catch (error) {
+        console.error(error)
+    }
 }
