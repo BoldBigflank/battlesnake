@@ -196,7 +196,7 @@ function move(gameState: GameState): MoveResponse {
     if (chosenPath.length > 1) {
         const direction = getDirection(myHead, chosenPath[1], gameState)
         let foodPriority = PRIORITIES.TO_FOOD
-        if (marks.getMarks(grid.coordValue(chosenPath[1])).some((mark) => mark === 'scary')) {
+        if (marks.hasSomeMarks(grid.coordValue(chosenPath[1])), 'scary') {
             if (DEBUG) console.log('* Food blocked by scary snake')
             foodPriority = -1 * foodPriority
         }

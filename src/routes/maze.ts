@@ -30,9 +30,7 @@ export function routes(router: Router) {
     });
 
     router.post("/move", (req: Request, res: Response) => {
-        performance.mark('A')
         res.send(move(req.body))
-        performance.measure('A to Now', 'A');
     });
 
     router.post("/end", (req: Request, res: Response) => {

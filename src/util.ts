@@ -1,7 +1,12 @@
 import { GameState, Board, Coord } from "./types"
 
+type Tile = {
+    name: string
+    ttl: number
+}
+
 export class BoardMarks {
-    tiles: Record<string,string[]>
+    tiles: Record<string,Tile[]>
     gameState: GameState
 
     constructor(gameState: GameState) {
@@ -23,8 +28,9 @@ export class BoardMarks {
         
         gameState.board.snakes
         .forEach((snake) => {
-            snake.body.forEach((segment) => {
-                this.markTile(segment, 'snake')
+            // Fill the snake positions
+            snake.body.forEach((segment, i) => {
+                this.markTile(segment, 'snake', snake.body.length - i)
             })
             if (snake.length > gameState.you.length) {
                 this.markTile(up(snake.head, 1, directionHeight), 'scary')
@@ -43,24 +49,24 @@ export class BoardMarks {
 
     }
 
-    markTile(coord: Coord, mark: string) {
+    markTile(coord: Coord, name: string, ttl: number = -1) {
         const key = coordKey(coord)
         if (!this.tiles[key]) this.tiles[key] = []
-        this.tiles[key].push(mark)
+        this.tiles[key].push({ name, ttl })
     }
 
-    getMarks(coord: Coord): string[] {
+    getMarks(coord: Coord): Tile[] {
         return this.tiles[coordKey(coord)] || []
     }
 
-    hasMark(coord: Coord, type: string) {
+    hasMark(coord: Coord, type: string): boolean {
         const marks = this.getMarks(coord)
-        return marks.some((mark) => mark === type)
+        return marks.some((mark) => mark.name === type)
     }
 
-    hasSomeMarks(coord: Coord, types: string[]) {
+    hasSomeMarks(coord: Coord, types: string[]): boolean {
         const marks = this.getMarks(coord)
-        return marks.some((mark) => types.includes(mark))
+        return marks.some((mark) => types.includes(mark.name))
     }
 }
 
