@@ -5,11 +5,26 @@ type Tile = {
     ttl: number
 }
 
+type CoordQueueItem = {
+    coord: Coord
+    mark: 'control'|'enemy-control'
+    time: number
+    move?: string
+}
+
 export class BoardMarks {
     tiles: Record<string,Tile[]>
     gameState: GameState
+    coordQueue: CoordQueueItem[]
+    fill: Record<string,number>
 
     constructor(gameState: GameState) {
+        this.fill = {
+            up: 0,
+            right: 0,
+            down: 0,
+            left: 0
+        }
         this.tiles = {}
         this.gameState = gameState
         const isWrapped = gameState.game.ruleset.name === 'wrapped'
@@ -47,6 +62,47 @@ export class BoardMarks {
             }
         })
 
+        this.coordQueue = []
+        gameState.board.snakes
+        .sort((a, b) => b.length - a.length)
+        .forEach((snake) => {
+            const markType = snake.id === gameState.you.id ? 'control' : 'enemy-control'
+            this.coordQueue.push({
+                coord: snake.head,
+                mark: markType,
+                time: 0
+            })
+        })
+
+        while (this.coordQueue.length > 0) {
+            const { coord, mark, time, move } = this.coordQueue.shift() as CoordQueueItem
+            let direction: string|undefined = move
+            const coords = [
+                up(coord, 1, directionHeight),
+                right(coord, 1, directionWidth),
+                down(coord, 1, directionHeight),
+                left(coord, 1, directionWidth)
+            ]
+            coords.forEach((adjCoord, i) => {
+                if (mark === 'control') {
+                    if (direction) this.fill[direction] += 1
+                    if (time === 0) {
+                        const moves = ['up', 'right', 'down', 'left']
+                        // Set the move
+                        direction = moves[i]
+                    }
+                }
+                if (!this.hasSomeMarks(adjCoord, ['snake', 'hazard', 'control', 'enemy-control'], time)) {
+                    this.markTile(adjCoord, mark)
+                    this.coordQueue.push({
+                        coord: adjCoord,
+                        mark,
+                        time: time + 1,
+                        move: direction
+                    })
+                }
+            })
+        }
     }
 
     markTile(coord: Coord, name: string, ttl: number = -1) {
@@ -59,14 +115,64 @@ export class BoardMarks {
         return this.tiles[coordKey(coord)] || []
     }
 
+    getFill(): Record<string,number> {
+        return this.fill
+    }
+
     hasMark(coord: Coord, type: string): boolean {
         const marks = this.getMarks(coord)
         return marks.some((mark) => mark.name === type)
     }
 
-    hasSomeMarks(coord: Coord, types: string[]): boolean {
+    hasSomeMarks(coord: Coord, types: string[], time: number = -1): boolean {
         const marks = this.getMarks(coord)
-        return marks.some((mark) => types.includes(mark.name))
+        return marks
+        .filter((mark) => mark.ttl === -1 || mark.ttl > time)
+        .some((mark) => types.includes(mark.name))
+    }
+
+    getThoughts(): Coord[] {
+        const thoughts: Coord[] = []
+        Object.keys(this.tiles).forEach((key) => {
+            const coord = coordValue(key)
+            if (this.hasMark(coord, 'snake')) {
+                thoughts.push({
+                    ...coord,
+                    r: 1,
+                    color: '#000000'
+                })
+            }
+            if (this.hasMark(coord, 'control')) {
+                thoughts.push({
+                    ...coord,
+                    r: 4,
+                    color: '#00ff00'
+                })
+            }
+            if (this.hasMark(coord, 'enemy-control')) {
+                thoughts.push({
+                    ...coord,
+                    r: 4,
+                    color: '#000000'
+                })
+            }
+            if (this.hasMark(coord, 'yummy')) {
+                thoughts.push({
+                    ...coord,
+                    r: 2,
+                    color: '#00ffff'
+                })
+            }
+            if (this.hasMark(coord, 'scary')) {
+                thoughts.push({
+                    ...coord,
+                    r: 2,
+                    color: '#ff0000'
+                })
+            }
+            
+        })
+        return thoughts
     }
 }
 
@@ -130,4 +236,12 @@ export function left(coord: Coord, distance: number = 1, width: number = 0): Coo
 
 export function coordKey(coord: Coord) {
     return `${coord.x},${coord.y}`
+}
+
+export function coordValue(key: string): Coord {
+    const [x, y] = key.split(',')
+    return {
+        x: parseInt(x),
+        y: parseInt(y)
+    }
 }

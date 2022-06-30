@@ -98,8 +98,13 @@ function move(gameState: GameState): MoveResponse {
     // Finally, choose a move from the available safe moves.
     // TODO: Step 5 - Select a move to make based on strategy, rather than random.
     const safeMoves = Object.keys(possibleMoves).filter(key => possibleMoves[key])
+    const fill = marks.getFill()
+    const bestMove = Object.keys(fill).sort((a, b) => fill[b] - fill[a])[0]
     const response: MoveResponse = {
-        move: safeMoves[Math.floor(Math.random() * safeMoves.length)],
+        move: bestMove
+    }
+    if (gameState.thoughts) {
+        response.thoughts = marks.getThoughts()
     }
 
     // console.log(`${gameState.game.id} MOVE ${gameState.turn}: ${response.move}`)
