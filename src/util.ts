@@ -83,7 +83,16 @@ export class BoardMarks {
                 down(coord, 1, directionHeight),
                 left(coord, 1, directionWidth)
             ]
-            coords.forEach((adjCoord, i) => {
+            coords
+            .filter((c) => {
+                return (
+                    c.x >= 0 &&
+                    c.x < width &&
+                    c.y >= 0 &&
+                    c.y < height
+                )
+            })
+            .forEach((adjCoord, i) => {
                 if (mark === 'control') {
                     if (direction) this.fill[direction] += 1
                     if (time === 0) {
