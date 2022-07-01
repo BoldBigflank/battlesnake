@@ -45,7 +45,7 @@ export class BoardMarks {
         .forEach((snake) => {
             // Fill the snake positions
             snake.body.forEach((segment, i) => {
-                this.markTile(segment, 'snake', snake.body.length - i)
+                this.markTile(segment, 'snake', snake.body.length - i - 1)
             })
             if (snake.length > gameState.you.length) {
                 this.markTile(up(snake.head, 1, directionHeight), 'scary')
@@ -136,7 +136,7 @@ export class BoardMarks {
     hasSomeMarks(coord: Coord, types: string[], time: number = -1): boolean {
         const marks = this.getMarks(coord)
         return marks
-        .filter((mark) => mark.ttl === -1 || mark.ttl > time)
+        .filter((mark) => mark.ttl === -1 || time < mark.ttl)
         .some((mark) => types.includes(mark.name))
     }
 
