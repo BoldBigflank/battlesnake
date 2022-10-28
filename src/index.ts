@@ -10,9 +10,14 @@ import { routes as maze } from './routes/maze'
 
 const app = express()
 app.use(express.json())
-app.use(cors({
-    origin: ['http://127.0.0.1:3000']
-}))
+
+const corsOptions = {
+    origin: ['http://127.0.0.1:5555',
+        'http://127.0.0.1:3000',
+        /\.battlensnake\.com$/
+    ]
+}
+app.use(cors(corsOptions))
 
 const port = process.env.PORT || 5555
 

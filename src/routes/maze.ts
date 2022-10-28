@@ -4,7 +4,7 @@ import FloodFill from "../floodfill"
 import PriorityList from "../priorityList"
 import { up, down, left, right, coordEqual, BoardMarks } from "../util"
 import { onGameStart, onGameEnd } from "../logging"
-import { endGame, startGame } from "../storage"
+// import { endGame, startGame } from "../storage"
 import { Router, Request, Response } from "express"
 import fetch from 'cross-fetch'
 
@@ -26,7 +26,7 @@ export function routes(router: Router) {
 
     router.post("/start", (req: Request, res: Response) => {
         res.send(start(req.body))
-        startGame(req.body)
+        // startGame(req.body)
     });
 
     router.post("/move", (req: Request, res: Response) => {
@@ -35,7 +35,7 @@ export function routes(router: Router) {
 
     router.post("/end", (req: Request, res: Response) => {
         res.send(end(req.body))
-        endGame(req.body)
+        // endGame(req.body)
     });
 
     return router

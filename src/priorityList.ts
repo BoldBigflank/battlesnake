@@ -1,4 +1,4 @@
-type DirectionString = "up" | "down" | "left" | "right"
+import { DirectionString } from './types'
 
 const DEBUG = process.env.DEBUG
 
@@ -47,6 +47,15 @@ export default class PriorityList {
     set right(value) {
         if (DEBUG) console.log(`>> set right ${this.priorityMoves.right} -> ${value}`)
         this.priorityMoves.right = value
+    }
+
+    get(direction: DirectionString) {
+        return this.priorityMoves[direction]
+    }
+
+    set(direction: DirectionString, value: number) {
+        if (DEBUG) console.log(`>> set ${direction} ${this.priorityMoves[direction]} -> ${value}`)
+        this.priorityMoves[direction] = value
     }
 
     getDirection() {

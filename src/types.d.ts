@@ -1,4 +1,5 @@
 // See https://docs.battlesnake.com/references/api for all details and examples.
+export type DirectionString = "up" | "down" | "left" | "right"
 
 export interface InfoResponse {
     apiversion: string;

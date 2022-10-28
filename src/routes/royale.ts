@@ -1,10 +1,10 @@
-import { InfoResponse, GameState, MoveResponse, Coord, Battlesnake } from "../types"
+import { DirectionString, InfoResponse, GameState, MoveResponse, Coord, Battlesnake } from "../types"
 import Grid from '../grid'
 import FloodFill from "../floodfill"
 import PriorityList from "../priorityList"
 import { up, down, left, right, coordEqual, BoardMarks } from "../util"
 import { onGameStart, onGameEnd } from "../logging"
-import { endGame, startGame } from "../storage"
+// import { endGame, startGame } from "../storage"
 import { Router, Request, Response } from "express"
 import fetch from 'cross-fetch'
 
@@ -17,7 +17,9 @@ type Skin = {
 }
 
 const PRIORITIES = {
+    FOOD_CONTROL: 2,
     TO_FOOD: 4, // Steal from an equal snake, ignore for a guaranteed yummy snake
+    AREA_CONTROL: 5, // Be safe out there
     SCARY_SNAKE: -7, // -9, -8 or -7 if enemy has 1, 2, or 3 move options
     EQUAL_SNAKE: -8, // -7, -6, or -5 if enemy has 1, 2, or 3 move options
     YUMMY_SNAKE: 5, // 5 if they have 1 move option, 1 otherwise
@@ -34,7 +36,7 @@ export function routes(router: Router) {
 
     router.post("/start", (req: Request, res: Response) => {
         res.send(start(req.body))
-        startGame(req.body)
+        // startGame(req.body)
     });
 
     router.post("/move", (req: Request, res: Response) => {
@@ -43,7 +45,7 @@ export function routes(router: Router) {
 
     router.post("/end", (req: Request, res: Response) => {
         res.send(end(req.body))
-        endGame(req.body)
+        // endGame(req.body)
     });
 
     return router
@@ -159,6 +161,13 @@ function move(gameState: GameState): MoveResponse {
     }
     
     /*
+        Deprioritize area we don't control
+    */
+    const fill = marks.getFill()
+    const bestMove = Object.keys(fill).sort((a, b) => fill[b] - fill[a])[0] as DirectionString
+    if (DEBUG) console.log('* Checking area control', fill)
+    priorityMoves.set(bestMove, priorityMoves.get(bestMove) + PRIORITIES.AREA_CONTROL)
+    /*
         Prioritize the direction that goes toward the closest food
     */
     // New way, build and use a grid
@@ -177,8 +186,14 @@ function move(gameState: GameState): MoveResponse {
         }
     })
     if (DEBUG) console.log(chosenPath.length === 0 ? '* No good path to food found' : `* Found ${chosenPath.length - 1} step path`)
-    // Move to my own tail otherwise
-    if (!chosenPath.length) {
+    if (chosenPath.length) {
+        const direction = getDirection(myHead, chosenPath[1], gameState)
+        if (direction && direction === bestMove) {
+            if (DEBUG) console.log('* Food is in my control area')
+            priorityMoves.set(direction, priorityMoves.get(direction) + PRIORITIES.FOOD_CONTROL)
+        }
+    } else {
+        // Move to my own tail otherwise
         try {
             const path = grid.findBestPath(gameState.you.body[gameState.you.length-1])
             if (path.length > 1) { // Gotta have space
@@ -205,14 +220,7 @@ function move(gameState: GameState): MoveResponse {
         if (direction === 'left') priorityMoves.left += foodPriority
         if (direction === 'right') priorityMoves.right += foodPriority
     } else {
-        if (DEBUG) console.log('* No good path to tail found, just avoiding adjacent hazards')
-        // In this case, just deprioritize adjacent hazards
-        gameState.board.hazards.forEach((hazard) => {
-            if (coordEqual(up(myHead, 1, directionHeight), hazard)) priorityMoves.up -= PRIORITIES.TO_FOOD
-            if (coordEqual(right(myHead, 1, directionWidth), hazard)) priorityMoves.right -= PRIORITIES.TO_FOOD
-            if (coordEqual(down(myHead, 1, directionHeight), hazard)) priorityMoves.down -= PRIORITIES.TO_FOOD
-            if (coordEqual(left(myHead, 1, directionWidth), hazard)) priorityMoves.left -= PRIORITIES.TO_FOOD
-        })
+        if (DEBUG) console.log('* No good path to tail found')
     }
 
     /*
@@ -315,7 +323,7 @@ function isHazard(coord: Coord, gameState: GameState): boolean {
     })
 }
 
-function getDirection(start: Coord, key: string, gameState: GameState): string | undefined {
+function getDirection(start: Coord, key: string, gameState: GameState): DirectionString|null {
     const [keyX, keyY] = key.split(',')
     const { width, height } = gameState.board
     const end: Coord = {x: parseInt(keyX), y: parseInt(keyY)}
@@ -329,6 +337,7 @@ function getDirection(start: Coord, key: string, gameState: GameState): string |
         if ((start.x + 1) % width === end.x) return 'right'
         if ((start.x - 1 + width) % width === end.x) return 'left'
     }
+    return null
 }
 
 function direction(a: Coord, b: Coord): string {
