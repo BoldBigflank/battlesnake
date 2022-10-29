@@ -19,7 +19,7 @@ type Skin = {
 const PRIORITIES = {
     FOOD_CONTROL: 2,
     TO_FOOD: 4, // Steal from an equal snake, ignore for a guaranteed yummy snake
-    AREA_CONTROL: 5, // Be safe out there
+    AREA_CONTROL: 6, // Be safe out there
     SCARY_SNAKE: -7, // -9, -8 or -7 if enemy has 1, 2, or 3 move options
     EQUAL_SNAKE: -8, // -7, -6, or -5 if enemy has 1, 2, or 3 move options
     YUMMY_SNAKE: 5, // 5 if they have 1 move option, 1 otherwise
