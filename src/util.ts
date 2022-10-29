@@ -62,13 +62,13 @@ export class BoardMarks {
             modBody.forEach((segment, i) => {
                 this.markTile(segment, 'snake', modBody.length - i - 1)
             })
-            if (modBody.length > gameState.you.length) {
+            if (snake.body.length > gameState.you.length) {
                 this.markTile(up(snake.head, 1, directionHeight), 'scary')
                 this.markTile(right(snake.head, 1, directionHeight), 'scary')
                 this.markTile(down(snake.head, 1, directionHeight), 'scary')
                 this.markTile(left(snake.head, 1, directionHeight), 'scary')
             }
-            if (modBody.length < gameState.you.length) {
+            if (snake.body.length < gameState.you.length) {
                 this.markTile(up(snake.head, 1, directionHeight), 'yummy')
                 this.markTile(right(snake.head, 1, directionHeight), 'yummy')
                 this.markTile(down(snake.head, 1, directionHeight), 'yummy')
@@ -116,9 +116,14 @@ export class BoardMarks {
                         else if (coordEqual(left(coord, 1, directionWidth), adjCoord)) direction = 'left'
                     }
                 }
-                if (!this.hasSomeMarks(adjCoord, ['snake', 'hazard', 'control', 'enemy-control'], time)) {
+                // Don't care about 'control' bc we're doing each direction as control
+                const marksToAvoid = ['snake', 'hazard', 'enemy-control']
+                if (mark === 'control') marksToAvoid.push(direction!)
+                else marksToAvoid.push('control')
+                if (!this.hasSomeMarks(adjCoord, marksToAvoid, time)) {
                     if (direction) this.fill[direction] += 1
                     this.markTile(adjCoord, mark)
+                    if (mark === 'control') this.markTile(adjCoord, direction!)
                     this.coordQueue.push({
                         coord: adjCoord,
                         mark,

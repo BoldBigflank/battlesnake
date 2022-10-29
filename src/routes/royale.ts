@@ -164,9 +164,17 @@ function move(gameState: GameState): MoveResponse {
         Deprioritize area we don't control
     */
     const fill = marks.getFill()
-    const bestMove = Object.keys(fill).sort((a, b) => fill[b] - fill[a])[0] as DirectionString
+    let maxFill = 0
+    Object.keys(fill).forEach((f) => {
+        maxFill = Math.max(maxFill, fill[f])
+    })
     if (DEBUG) console.log('* Checking area control', fill)
-    priorityMoves.set(bestMove, priorityMoves.get(bestMove) + PRIORITIES.AREA_CONTROL)
+    Object.keys(fill).forEach((key) => {
+        const move = key as DirectionString
+        if (fill[move] === maxFill) {
+            priorityMoves.set(move, priorityMoves.get(move) + PRIORITIES.AREA_CONTROL)
+        }
+    })
     /*
         Prioritize the direction that goes toward the closest food
     */
@@ -292,7 +300,7 @@ function move(gameState: GameState): MoveResponse {
         })))
         
         const chosenDot = {
-            color: '#BAD455',
+            color: '#ffffff',
             r: 2
         }
         if (move === 'up') response.thoughts.push(up({
