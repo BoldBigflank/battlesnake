@@ -43,18 +43,32 @@ export class BoardMarks {
         
         gameState.board.snakes
         .forEach((snake) => {
+            // Find the nearest food, add a segment that many turns away
+            let modBody = [...snake.body]
+            if (gameState.board.food) {
+                let f = Number.MAX_SAFE_INTEGER
+                gameState.board.food.forEach((food) => {
+                    const foodDistance = coordDistance(snake.head, food, width, height)
+                    f = Math.min(f, foodDistance)
+                })
+                if (f < modBody.length)  {
+                    const modIndex = modBody.length - f - 1
+                    modBody.splice(modIndex, 0, modBody[modIndex])
+                }
+            }
+            
+            
             // Fill the snake positions
-            snake.body.forEach((segment, i) => {
-                this.markTile(segment, 'snake', snake.body.length - i - 1)
+            modBody.forEach((segment, i) => {
+                this.markTile(segment, 'snake', modBody.length - i - 1)
             })
-            if (snake.length > gameState.you.length) {
+            if (modBody.length > gameState.you.length) {
                 this.markTile(up(snake.head, 1, directionHeight), 'scary')
                 this.markTile(right(snake.head, 1, directionHeight), 'scary')
                 this.markTile(down(snake.head, 1, directionHeight), 'scary')
                 this.markTile(left(snake.head, 1, directionHeight), 'scary')
             }
-            // .filter((snake) => snake.length > gameState.you.length)
-            if (snake.length < gameState.you.length) {
+            if (modBody.length < gameState.you.length) {
                 this.markTile(up(snake.head, 1, directionHeight), 'yummy')
                 this.markTile(right(snake.head, 1, directionHeight), 'yummy')
                 this.markTile(down(snake.head, 1, directionHeight), 'yummy')
