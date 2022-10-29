@@ -94,14 +94,16 @@ export class BoardMarks {
             })
             .forEach((adjCoord, i) => {
                 if (mark === 'control') {
-                    if (direction) this.fill[direction] += 1
                     if (time === 0) {
-                        const moves = ['up', 'right', 'down', 'left']
                         // Set the move
-                        direction = moves[i]
+                        if (coordEqual(up(coord, 1, directionHeight), adjCoord)) direction = 'up'
+                        else if (coordEqual(right(coord, 1, directionWidth), adjCoord)) direction = 'right'
+                        else if (coordEqual(down(coord, 1, directionHeight), adjCoord)) direction = 'down'
+                        else if (coordEqual(left(coord, 1, directionWidth), adjCoord)) direction = 'left'
                     }
                 }
                 if (!this.hasSomeMarks(adjCoord, ['snake', 'hazard', 'control', 'enemy-control'], time)) {
+                    if (direction) this.fill[direction] += 1
                     this.markTile(adjCoord, mark)
                     this.coordQueue.push({
                         coord: adjCoord,

@@ -188,7 +188,7 @@ function move(gameState: GameState): MoveResponse {
     if (DEBUG) console.log(chosenPath.length === 0 ? '* No good path to food found' : `* Found ${chosenPath.length - 1} step path`)
     if (chosenPath.length) {
         const direction = getDirection(myHead, chosenPath[1], gameState)
-        if (direction && direction === bestMove) {
+        if (direction && fill[direction] >= gameState.you.length + chosenPath.length) {
             if (DEBUG) console.log('* Food is in my control area')
             priorityMoves.set(direction, priorityMoves.get(direction) + PRIORITIES.FOOD_CONTROL)
         }
@@ -283,15 +283,16 @@ function move(gameState: GameState): MoveResponse {
     }
 
     if (gameState.thoughts) {
-        response.thoughts = []
-        if (chosenPath.length > 1) response.thoughts = chosenPath.splice(1).map((coord) => ({
+        response.thoughts = marks.getThoughts()
+        if (chosenPath.length > 1) response.thoughts.push(...chosenPath.splice(1).map((coord) => ({
             x: parseInt(coord.split(',')[0], 10),
             y: parseInt(coord.split(',')[1], 10),
-            color: '#000000',
+            color: '#657244',
             r: 3
-        }))
+        })))
+        
         const chosenDot = {
-            color: '#00ff00',
+            color: '#BAD455',
             r: 2
         }
         if (move === 'up') response.thoughts.push(up({
