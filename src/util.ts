@@ -78,7 +78,15 @@ export class BoardMarks {
 
         this.coordQueue = []
         gameState.board.snakes
-        .sort((a, b) => b.length - a.length)
+        .sort((a, b) => {
+            if (b.length !== a.length)
+                return b.length - a.length
+            // In the case where two snakes are equal
+            // and there's only two left, be aggressive
+            if (gameState.board.snakes.length > 2) return 0
+            // Fill your board first
+            return (b.id === gameState.you.id) ? 1 : -1
+        })
         .forEach((snake) => {
             const markType = snake.id === gameState.you.id ? 'control' : 'enemy-control'
             this.coordQueue.push({
